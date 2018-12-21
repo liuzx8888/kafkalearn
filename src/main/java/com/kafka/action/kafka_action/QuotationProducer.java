@@ -1,10 +1,12 @@
 package com.kafka.action.kafka_action;
 
+import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.Random;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.Logger;
 
@@ -42,15 +44,49 @@ public class QuotationProducer {
 
 	/* 生产股票行情信息 */
 	private static StockQuotationInfo createQuotationInfo() {
-		StockQuotationInfo  quotationInfo  =new StockQuotationInfo();
+		StockQuotationInfo quotationInfo = new StockQuotationInfo();
 		Random r = new Random();
-		Integer stockCode = 60010+r.nextInt(10);
-		float  random =  (float) Math.random();
-		if(random/2<0.5) {
-			random= -random;
+		Integer stockCode = 60010 + r.nextInt(10);
+		float random = (float) Math.random();
+		if (random / 2 < 0.5) {
+			random = -random;
 		}
+
+		DecimalFormat decimalFormat = new DecimalFormat(".00");
+		quotationInfo.setCurrentPrice(Float.valueOf(decimalFormat.format(11 + random)));
+		quotationInfo.setPreClosePrice(11.80f);
+		quotationInfo.setLowPrice(10.5f);
+		quotationInfo.setHighPrice(11.5f);
+		quotationInfo.setStockCode(stockCode.toString());
+		quotationInfo.setStockName("股票-" + stockCode);
+		quotationInfo.setTradeTime(System.currentTimeMillis());
 		return quotationInfo;
-		
+
+	}
+
+	public static void main(String[] args) {
+		ProducerRecord<String, String> record = null;
+		StockQuotationInfo quotationInfo = null;
+       
+		try {
+		int num = 0;
+		for (int i = 0; i < MSG_SIZE; i++) {
+			quotationInfo = createQuotationInfo();
+			record = new ProducerRecord<String, String>(TOPIC, null, quotationInfo.getTradeTime(),
+					quotationInfo.getStockCode(), quotationInfo.toString());
+            producer.send(record);
+            if (num++ % 10 ==0) {
+            	Thread.sleep(2000L);
+            }
+            
+		}
+		}catch (InterruptedException e) {
+			// TODO: handle exception
+			LOG.error("Send message occurs exception", e);
+		}finally {
+			producer.close();
+		}
+
 	}
 
 }

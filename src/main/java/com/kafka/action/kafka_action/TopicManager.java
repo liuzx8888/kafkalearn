@@ -12,7 +12,6 @@ import kafka.server.ConfigType;
 import kafka.utils.ZkUtils;
 import scala.collection.Seq;
 
-
 public class TopicManager {
 	private static final String ZK_CONNECT = "hadoop1:2181,hadoop2:2181,hadoop3:2181,hadoop4:2181";
 	private static final int SESSION_TIMEOUT = 3000;
@@ -91,9 +90,9 @@ public class TopicManager {
 				AdminUtils.getBrokerMetadatas$default$2(), AdminUtils.getBrokerMetadatas$default$3());
 
 		/* 生成副本分区方案 */
-		scala.collection.Map<Object, Seq<Object>> replicaAssign =  (scala.collection.Map<Object, Seq<Object>>) AdminUtils.assignReplicasToBrokers(getBrokerMetadatas,
-				numPartitions, replications, AdminUtils.assignReplicasToBrokers$default$4(),
-				AdminUtils.assignReplicasToBrokers$default$5());
+		scala.collection.Map<Object, Seq<Object>> replicaAssign = (scala.collection.Map<Object, Seq<Object>>) AdminUtils
+				.assignReplicasToBrokers(getBrokerMetadatas, numPartitions, replications,
+						AdminUtils.assignReplicasToBrokers$default$4(), AdminUtils.assignReplicasToBrokers$default$5());
 
 		/* 修改重分区方案 */
 
@@ -106,8 +105,8 @@ public class TopicManager {
 		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
 		TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
 		TopicManager.getproperties(utils, Topic);
-/*		TopicManager.addpartition(utils, Topic, 9);*/
-		TopicManager.assignreplicas(utils, Topic,11, 4);
+		/* TopicManager.addpartition(utils, Topic, 9); */
+		TopicManager.assignreplicas(utils, Topic, 11, 4);
 		utils.close();
 
 	}

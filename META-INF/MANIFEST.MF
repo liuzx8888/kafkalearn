@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: kafkalearn
+Bundle-SymbolicName: kafkalearn
+Bundle-Version: 1.0.0.qualifier
+Export-Package: com.kafka.action.kafka_action
