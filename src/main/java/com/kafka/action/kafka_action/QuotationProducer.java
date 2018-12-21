@@ -9,5 +9,8 @@ public class QuotationProducer {
 	 * 设置消息生产总数
 	 */
 	
+	
+	
+	
 
 }
