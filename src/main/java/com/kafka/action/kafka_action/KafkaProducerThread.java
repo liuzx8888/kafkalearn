@@ -3,6 +3,8 @@ package com.kafka.action.kafka_action;
 import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -12,15 +14,24 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.Logger;
 
-public class QuotationProducer {
-	private static final Logger LOG = Logger.getLogger(QuotationProducer.class);
-	/* 设置消息生产总数 */
+public class KafkaProducerThread implements Runnable {
+
+	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
-	/* 主题名称 */
+	private static final int THREAD_NUM = 2;
 	private static final String TOPIC = "stock-quotation";
-	/* kafka集群 */
 	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
 	private static KafkaProducer<String, String> producer = null;
+
+	KafkaProducer<String, String> kafkaProducer = null;
+	ProducerRecord<String, String> record = null;
+	static StockQuotationInfo quotationInfo = null;
+
+	public KafkaProducerThread(KafkaProducer<String, String> kafkaProducer, ProducerRecord<String, String> record) {
+		this.kafkaProducer = kafkaProducer;
+		this.record = record;
+	}
+
 	static {
 		// 1.构建用于实例化KafkaProducer 的 properties 信息
 		Properties configs = initconfig();
@@ -42,6 +53,24 @@ public class QuotationProducer {
 		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		return properties;
 
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+
+		kafkaProducer.send(record, new Callback() {
+
+			@Override
+			public void onCompletion(RecordMetadata metadata, Exception exception) {
+				if (exception != null) {
+					LOG.error("Send message occurs exception", exception);
+				}
+				if (metadata != null) {
+					LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));
+				}
+			}
+		});
 	}
 
 	/* 生产股票行情信息 */
@@ -68,43 +97,23 @@ public class QuotationProducer {
 
 	public static void main(String[] args) {
 		ProducerRecord<String, String> record = null;
-		StockQuotationInfo quotationInfo = null;
-
+		ExecutorService executors = Executors.newFixedThreadPool(THREAD_NUM);
+		long current = System.currentTimeMillis();
 		try {
 			int num = 0;
 			for (int i = 0; i < MSG_SIZE; i++) {
 				quotationInfo = createQuotationInfo();
 				record = new ProducerRecord<String, String>(TOPIC, null, quotationInfo.getTradeTime(),
 						quotationInfo.getStockCode(), quotationInfo.toString());
-				/* producer.send(record); */
-
-				producer.send(record, new Callback() {
-
-					@Override
-					public void onCompletion(RecordMetadata metadata, Exception exception) {
-						// TODO Auto-generated method stub
-						if (exception != null) {
-							LOG.error("Send message occurs exception", exception);
-						}
-						if (metadata != null) {
-							LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));
-							;
-						}
-					}
-				});
-
-				if (num++ % 10 == 0) {
-					Thread.sleep(2000L);
-				}
-
+				executors.submit(new KafkaProducerThread(producer, record));
 			}
-		} catch (InterruptedException e) {
-			// TODO: handle exception
+
+		} catch (Exception e) {
 			LOG.error("Send message occurs exception", e);
 		} finally {
 			producer.close();
+			executors.shutdown();
 		}
 
 	}
-
 }

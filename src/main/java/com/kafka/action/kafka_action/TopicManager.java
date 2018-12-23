@@ -101,12 +101,12 @@ public class TopicManager {
 	}
 
 	public static void main(String[] args) {
-		String Topic = "topic_api_4";
-		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
-		TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
+		String Topic = "stock-quotation";
+		TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); 
+		/*TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
 		TopicManager.getproperties(utils, Topic);
-		/* TopicManager.addpartition(utils, Topic, 9); */
-		TopicManager.assignreplicas(utils, Topic, 11, 4);
+		TopicManager.addpartition(utils, Topic, 9); 
+		TopicManager.assignreplicas(utils, Topic, 11, 4);*/
 		utils.close();
 
 	}
