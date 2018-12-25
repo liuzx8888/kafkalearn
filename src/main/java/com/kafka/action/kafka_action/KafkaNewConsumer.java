@@ -216,8 +216,7 @@ public class KafkaNewConsumer extends Thread {
 		for (int i = 0; i < 6; i++) {
 			KafkaNewConsumer target = new KafkaNewConsumer();
 			target.subscribeTopicAuto(consumer, TOPIC);
-			new Thread(target);
-
+			new Thread(target).start();
 		}
 
 	}
