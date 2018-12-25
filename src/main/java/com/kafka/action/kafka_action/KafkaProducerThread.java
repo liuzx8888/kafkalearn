@@ -19,8 +19,13 @@ public class KafkaProducerThread implements Runnable {
 	private static final int MSG_SIZE = 100;
 	private static final int THREAD_NUM = 1;
 	private static final String TOPIC = "stock-quotation";
+<<<<<<< HEAD
 	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
 	/*	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";*/	
+=======
+/*	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";*/
+	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";	
+>>>>>>> refs/remotes/origin/master
 	private static KafkaProducer<String, String> producer = null;
 
 	KafkaProducer<String, String> kafkaProducer = null;
@@ -66,15 +71,21 @@ public class KafkaProducerThread implements Runnable {
 
 			@Override
 			public void onCompletion(RecordMetadata metadata, Exception exception) {
+				System.out.println("111");
 				if (exception != null) {
 					LOG.error("Send message occurs exception222", exception);
 				}
 				if (metadata != null) {
+					System.out.println("222");
 					LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));
 				}
 			}
 		});
+<<<<<<< HEAD
 
+=======
+		System.out.println(Thread.currentThread());
+>>>>>>> refs/remotes/origin/master
 	}
 
 	/* 生产股票行情信息 */
@@ -107,7 +118,7 @@ public class KafkaProducerThread implements Runnable {
 			int num = 0;
 			for (int i = 0; i < MSG_SIZE; i++) {
 				quotationInfo = createQuotationInfo();
-				record = new ProducerRecord<String, String>(TOPIC, null, quotationInfo.getTradeTime(),
+				record = new ProducerRecord<String, String>(TOPIC, null, current,
 						quotationInfo.getStockCode(), quotationInfo.toString());
 				executors.submit(new KafkaProducerThread(producer, record));
 			}
