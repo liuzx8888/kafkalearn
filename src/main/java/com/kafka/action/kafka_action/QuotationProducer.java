@@ -19,7 +19,8 @@ public class QuotationProducer {
 	/* 主题名称 */
 	private static final String TOPIC = "stock-quotation";
 	/* kafka集群 */
-	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
+/*	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";*/
+	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
 	private static KafkaProducer<String, String> producer = null;
 	static {
 		// 1.构建用于实例化KafkaProducer 的 properties 信息
@@ -31,7 +32,6 @@ public class QuotationProducer {
 
 	/* 初始化kafka设置 */
 	private static Properties initconfig() {
-		// TODO Auto-generated method stub
 		Properties properties = new Properties();
 
 		/* kafka broker 列表 */

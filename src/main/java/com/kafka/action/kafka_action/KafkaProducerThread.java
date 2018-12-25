@@ -5,7 +5,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -18,9 +17,10 @@ public class KafkaProducerThread implements Runnable {
 
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
-	private static final int THREAD_NUM = 2;
+	private static final int THREAD_NUM = 1;
 	private static final String TOPIC = "stock-quotation";
 	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
+	/*	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";*/	
 	private static KafkaProducer<String, String> producer = null;
 
 	KafkaProducer<String, String> kafkaProducer = null;
@@ -51,6 +51,9 @@ public class KafkaProducerThread implements Runnable {
 		/* 设置序列化 */
 		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+		
+
+		
 		return properties;
 
 	}
@@ -64,13 +67,14 @@ public class KafkaProducerThread implements Runnable {
 			@Override
 			public void onCompletion(RecordMetadata metadata, Exception exception) {
 				if (exception != null) {
-					LOG.error("Send message occurs exception", exception);
+					LOG.error("Send message occurs exception222", exception);
 				}
 				if (metadata != null) {
 					LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));
 				}
 			}
 		});
+
 	}
 
 	/* 生产股票行情信息 */
@@ -109,7 +113,7 @@ public class KafkaProducerThread implements Runnable {
 			}
 
 		} catch (Exception e) {
-			LOG.error("Send message occurs exception", e);
+			LOG.error("Send message occurs exception 111", e);
 		} finally {
 			producer.close();
 			executors.shutdown();
