@@ -1,6 +1,5 @@
 package com.kafka.action.kafka_action;
 
-import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,7 +18,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
-public class KafkaNewConsumer {
+public class KafkaNewConsumer extends Thread {
 
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
@@ -189,7 +188,7 @@ public class KafkaNewConsumer {
 					}
 				}
 				ConsumerTopicMessage(consumer);
-				
+
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -213,4 +212,12 @@ public class KafkaNewConsumer {
 		}
 	}
 
+	public static void main(String[] args) {
+		for (int i = 0; i < 6; i++) {
+			KafkaNewConsumer target = new KafkaNewConsumer();
+			target.subscribeTopicAuto(consumer, TOPIC);
+			new Thread(target);
+		}
+
+	}
 }
