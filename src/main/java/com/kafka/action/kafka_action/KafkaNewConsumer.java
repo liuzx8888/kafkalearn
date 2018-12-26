@@ -18,26 +18,30 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
-public class KafkaNewConsumer extends Thread {
+public class KafkaNewConsumer {
 
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
 	private static final int TIME_OUT = 100;
-	private static final String TOPIC = "stock-quotation";
+	private static final String TOPIC = "TAB";
 	private static final String GROUPID = "test";
 	private static final String CLIENTID = "test";
-	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
-	private static final int AUTOCOMMITOFFSET = 1;
+	/*
+	 * private static final String BROKER_LIST =
+	 * "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
+	 */
+	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
+	private static final int AUTOCOMMITOFFSET = 0;
 
 	private static Properties pops = null;
 
-	private static KafkaConsumer<String, String> consumer = null;
+	private static KafkaConsumer<String, String> kafkaConsumerconsumer = null;
 
 	static {
 		// 1.构建用于实例化KafkaConsumer 的 properties 信息
 		Properties pops = initProperties();
 		// 2.初始化一个KafkaProducer
-		consumer = new KafkaConsumer<>(pops);
+		kafkaConsumerconsumer = new KafkaConsumer<>(pops);
 	}
 
 	/* 初始化配置文件 */
@@ -72,11 +76,11 @@ public class KafkaNewConsumer extends Thread {
 		} else {
 			LOG.info("设置了手动提交，请检查配置信息！！！");
 		}
+
 	}
 
 	/* 订阅主题, 消费消息,手动提交偏移量 */
-	@SuppressWarnings("unused")
-	private static void subscribeTopicCustom(KafkaConsumer<String, String> consumer, String topic) {
+	private static void subscribeTopicCustom1(KafkaConsumer<String, String> consumer, String topic) {
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic), new ConsumerRebalanceListener() {
 				@Override
@@ -99,6 +103,7 @@ public class KafkaNewConsumer extends Thread {
 					}
 				}
 			});
+
 		} else {
 			LOG.info("设置了自动提交，请检查配置信息！！！");
 		}
@@ -107,22 +112,23 @@ public class KafkaNewConsumer extends Thread {
 
 	}
 
-	@SuppressWarnings("unused")
-	private static void subscribeTopicCustom1(KafkaConsumer<String, String> consumer, String topic) {
+	private static void subscribeTopicCustom(KafkaConsumer<String, String> consumer, String topic) {
 		int minCommitSize = 10;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
-
+		int icount1 = 0;// 消息计数器
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic));
 			while (true) {
 				try {
 					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 					for (ConsumerRecord<String, String> record : records) {
-						System.out.printf("partition = %d,offset = %d, key = %d ,value = %s%d", record.partition(),
+						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n", record.partition(),
 								record.offset(), record.key(), record.value());
 						icount++;
+						icount1++;
 					}
 					if (icount >= minCommitSize) {
+						System.out.println(icount1);
 						consumer.commitAsync(new OffsetCommitCallback() {
 
 							@Override
@@ -136,14 +142,17 @@ public class KafkaNewConsumer extends Thread {
 								}
 							}
 						});
+						icount = 0;
 					}
-					icount++;
+
 				} catch (Exception e) {
 					// TODO: handle exception
 					LOG.error("消费消息发生异常！！", e);
-				} finally {
-					consumer.close();
+					break;
 				}
+				/*
+				 * finally { consumer.close(); }
+				 */
 			}
 		}
 	}
@@ -175,7 +184,7 @@ public class KafkaNewConsumer extends Thread {
 				TopicPartition partition = new TopicPartition(TOPIC, partitionId);
 
 				// 查询12小时之前的
-				timestampToSearch.put(partition, (System.currentTimeMillis() - 12 * 3600 * 1000));
+				timestampToSearch.put(partition, (System.currentTimeMillis() - 72 * 360000 * 1000));
 				// 会返回时间大于等于查找时间的第一个偏移量
 				Map<TopicPartition, OffsetAndTimestamp> offSet = consumer.offsetsForTimes(timestampToSearch);
 				OffsetAndTimestamp offsetAndTimestamp = null;
@@ -197,27 +206,39 @@ public class KafkaNewConsumer extends Thread {
 
 	/* 获取消息 */
 	private static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer) {
-		try {
-			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
-			for (ConsumerRecord<String, String> record : records) {
-				System.out.printf("partition = %d,offset = %d, key = %d ,value = %s%d", record.partition(),
-						record.offset(), record.key(), record.value());
 
+		try {
+
+			ConsumerRecords<String, String> records = consumer.poll(1000);
+			for (ConsumerRecord<String, String> record : records) {
+				System.out.printf("消费的消息: %n  partition = %d,offset = %d, key = %s , value = %s%n", record.partition(),
+						record.offset(), record.key(), record.value());
 			}
+
 		} catch (Exception e) {
 			// TODO: handle exception
 			LOG.error("消费消息发生异常！！", e);
-		} finally {
-			consumer.close();
 		}
+
+		/*
+		 * finally { consumer.close(); }
+		 */
+
 	}
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 6; i++) {
-			KafkaNewConsumer target = new KafkaNewConsumer();
-			target.subscribeTopicAuto(consumer, TOPIC);
-			new Thread(target).start();
-		}
+		/*
+		 * for (int i = 0; i < 6; i++) { KafkaNewConsumer target = new
+		 * KafkaNewConsumer(); target.subscribeTopicAuto(consumer, TOPIC); new
+		 * Thread(target).start(); }
+		 */
+
+		KafkaNewConsumer target = new KafkaNewConsumer();
+		/* target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); */
+		 target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); 
+/*		target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0);*/
+		kafkaConsumerconsumer.close();
+		
 
 	}
 }

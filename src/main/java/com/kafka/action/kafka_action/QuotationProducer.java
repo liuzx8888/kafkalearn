@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 public class QuotationProducer {
 	private static final Logger LOG = Logger.getLogger(QuotationProducer.class);
 	/* 设置消息生产总数 */
-	private static final int MSG_SIZE = 100;
+	private static final int MSG_SIZE = 5;
 	/* 主题名称 */
 	private static final String TOPIC = "stock-quotation";
 	/* kafka集群 */

@@ -16,8 +16,8 @@ import org.apache.log4j.Logger;
 public class KafkaProducerThread implements Runnable {
 
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
-	private static final int MSG_SIZE = 100;
-	private static final int THREAD_NUM = 1;
+	private static final int MSG_SIZE = 2000;
+	private static final int THREAD_NUM = 5;
 	private static final String TOPIC = "stock-quotation";
 
 	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
@@ -70,14 +70,15 @@ public class KafkaProducerThread implements Runnable {
 
 			@Override
 			public void onCompletion(RecordMetadata metadata, Exception exception) {
-				System.out.println("111");
 				if (exception != null) {
 					LOG.error("Send message occurs exception222", exception);
 				}
 				if (metadata != null) {
-					System.out.println("222");
 					LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));
+				}else {
+					LOG.info(String.format("offset:%s,partition:%s", metadata.offset(), metadata.partition()));				
 				}
+					
 			}
 		});
 	}
@@ -114,7 +115,8 @@ public class KafkaProducerThread implements Runnable {
 				quotationInfo = createQuotationInfo();
 				record = new ProducerRecord<String, String>(TOPIC, null, current,
 						quotationInfo.getStockCode(), quotationInfo.toString());
-				executors.submit(new KafkaProducerThread(producer, record));
+				KafkaProducerThread  target = new KafkaProducerThread(producer, record);
+				executors.submit(target);
 			}
 
 		} catch (Exception e) {
