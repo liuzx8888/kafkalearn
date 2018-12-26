@@ -20,7 +20,7 @@ public class AvroQuotationProducer {
 	/* 设置消息生产总数 */
 	private static final int MSG_SIZE = 5;
 	/* 主题名称 */
-	private static final String TOPIC = "stock-quotation";
+	private static final String TOPIC = "stock-quotation-avro";
 	/* kafka集群 */
 	/*
 	 * private static final String BROKER_LIST =

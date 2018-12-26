@@ -25,7 +25,7 @@ public class AvroKafkaNewConsumer {
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
 	private static final int TIME_OUT = 100;
-	private static final String TOPIC = "TAB";
+	private static final String TOPIC = "stock-quotation-avro";
 	private static final String GROUPID = "test";
 	private static final String CLIENTID = "test";
 	/*
