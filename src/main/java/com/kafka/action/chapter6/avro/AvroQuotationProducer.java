@@ -1,4 +1,4 @@
-package com.kafka.action.kafka_action;
+package com.kafka.action.chapter6.avro;
 
 import java.text.DecimalFormat;
 import java.util.Properties;
@@ -12,13 +12,10 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.Logger;
 
-import com.kafka.action.chapter6.avro.AvroSerializer;
-import com.kafka.action.chapter6.avro.AvroStockQuotation;
-
 public class AvroQuotationProducer {
 	private static final Logger LOG = Logger.getLogger(AvroQuotationProducer.class);
 	/* 设置消息生产总数 */
-	private static final int MSG_SIZE = 5;
+	private static final int MSG_SIZE = 10;
 	/* 主题名称 */
 	private static final String TOPIC = "stock-quotation-avro";
 	/* kafka集群 */
@@ -45,9 +42,12 @@ public class AvroQuotationProducer {
 
 		/* 设置自定义序列化 */
 		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,AvroSerializer.class.getName());
-		return properties;
+		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class.getName());
 		
+		/* 设置自定义分区*/
+	/*	properties.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, StockPartitionor.class.getName());*/
+		
+		return properties;
 
 	}
 

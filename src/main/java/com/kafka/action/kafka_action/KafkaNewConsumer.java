@@ -23,7 +23,7 @@ public class KafkaNewConsumer {
 	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
 	private static final int MSG_SIZE = 100;
 	private static final int TIME_OUT = 100;
-	private static final String TOPIC = "TAB";
+	private static final String TOPIC = "stock-quotation";
 	private static final String GROUPID = "test";
 	private static final String CLIENTID = "test";
 	/*
@@ -122,8 +122,8 @@ public class KafkaNewConsumer {
 				try {
 					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 					for (ConsumerRecord<String, String> record : records) {
-						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n", record.partition(),
-								record.offset(), record.key(), record.value());
+						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
+								record.partition(), record.offset(), record.key(), record.value());
 						icount++;
 						icount1++;
 					}
@@ -235,10 +235,9 @@ public class KafkaNewConsumer {
 
 		KafkaNewConsumer target = new KafkaNewConsumer();
 		/* target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); */
-		 target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); 
-/*		target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0);*/
+		target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC);
+		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */
 		kafkaConsumerconsumer.close();
-		
 
 	}
 }

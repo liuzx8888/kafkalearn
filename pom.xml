@@ -69,6 +69,11 @@
 			<artifactId>bijection-avro_2.11</artifactId>
 			<version>0.9.6</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-streams</artifactId>
+			<version>0.10.1.1</version>
+		</dependency>
 
 	</dependencies>
 

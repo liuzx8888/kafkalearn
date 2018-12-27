@@ -15,9 +15,9 @@ import org.apache.log4j.Logger;
 public class QuotationProducer {
 	private static final Logger LOG = Logger.getLogger(QuotationProducer.class);
 	/* 设置消息生产总数 */
-	private static final int MSG_SIZE = 5;
+	private static final int MSG_SIZE = 1;
 	/* 主题名称 */
-	private static final String TOPIC = "stock-quotation";
+	private static final String TOPIC = "stock-quotation-avro";
 	/* kafka集群 */
 /*	private static final String BROKER_LIST = "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";*/
 	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";

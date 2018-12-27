@@ -1,4 +1,4 @@
-package com.kafka.action.kafka_action;
+package com.kafka.action.chapter6.avro;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,11 +18,9 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
-import com.kafka.action.chapter6.avro.AvroStockQuotation;
-
 public class AvroKafkaNewConsumer {
 
-	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
+	private static final Logger LOG = Logger.getLogger(AvroKafkaNewConsumer.class);
 	private static final int MSG_SIZE = 100;
 	private static final int TIME_OUT = 100;
 	private static final String TOPIC = "stock-quotation-avro";
@@ -64,7 +62,7 @@ public class AvroKafkaNewConsumer {
 		}
 		/* 设置自定义反序列化 */
 		pops.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		pops.put("value.deserializer", "com.kafka.action.chapter6.avro.AvroDeserializer.java");
+		pops.put("value.deserializer", "com.kafka.action.chapter6.avro.AvroDeserializer");
 
 		return pops;
 	}
@@ -114,7 +112,8 @@ public class AvroKafkaNewConsumer {
 
 	}
 
-	private static void subscribeTopicCustom(KafkaConsumer<String, AvroStockQuotation> kafkaConsumerconsumer, String topic) {
+	private static void subscribeTopicCustom(KafkaConsumer<String, AvroStockQuotation> kafkaConsumerconsumer,
+			String topic) {
 		int minCommitSize = 10;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
 		int icount1 = 0;// 消息计数器
@@ -124,8 +123,8 @@ public class AvroKafkaNewConsumer {
 				try {
 					ConsumerRecords<String, AvroStockQuotation> records = kafkaConsumerconsumer.poll(TIME_OUT);
 					for (ConsumerRecord<String, AvroStockQuotation> record : records) {
-						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n", record.partition(),
-								record.offset(), record.key(), record.value());
+						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
+								record.partition(), record.offset(), record.key(), record.value());
 						icount++;
 						icount1++;
 					}
@@ -237,10 +236,9 @@ public class AvroKafkaNewConsumer {
 
 		AvroKafkaNewConsumer target = new AvroKafkaNewConsumer();
 		/* target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); */
-		 target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); 
-/*		target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0);*/
+		target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC);
+		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */
 		kafkaConsumerconsumer.close();
-		
 
 	}
 }
