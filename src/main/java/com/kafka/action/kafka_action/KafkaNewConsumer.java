@@ -1,19 +1,18 @@
 package com.kafka.action.kafka_action;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.record.Buffer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -86,6 +85,7 @@ public class KafkaNewConsumer {
 	}
 
 	/* 订阅主题, 消费消息,手动提交偏移量 */
+	@SuppressWarnings("unused")
 	private static void subscribeTopicCustom1(KafkaConsumer<String, String> consumer, String topic) {
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic), new ConsumerRebalanceListener() {
@@ -178,6 +178,7 @@ public class KafkaNewConsumer {
 	}
 
 	/* 订阅主题, 消费消息,按时间戳消费消息 */
+	@SuppressWarnings("unused")
 	private static void subscribeTopicTimestamp(KafkaConsumer<String, String> consumer, String topic,
 			int... partitions) {
 		ArrayList<TopicPartition> Topicpartitions = new ArrayList<TopicPartition>();
@@ -212,10 +213,8 @@ public class KafkaNewConsumer {
 
 	/* 获取消息 */
 	private static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer) {
-
 		try {
-
-			ConsumerRecords<String, String> records = consumer.poll(1000);
+			ConsumerRecords<String, String> records = consumer.poll(10000);
 			for (ConsumerRecord<String, String> record : records) {
 				System.out.printf("消费的消息: %n  partition = %d,offset = %d, key = %s , value = %s%n", record.partition(),
 						record.offset(), record.key(), record.value());
@@ -231,16 +230,17 @@ public class KafkaNewConsumer {
 		 */
 	}
 
-	private InputStream TopicMessage(KafkaConsumer<String, String> consumer) {
-		Reader inputStream = null;
+	@SuppressWarnings("unused")
+	private String MsgsToHdfs(KafkaConsumer<String, String> consumer) {
+		List<String> msgs = new LinkedList<String>();
 		try {
 
+			InputStream in = null;
 			ConsumerRecords<String, String> records = consumer.poll(10000);
 			for (ConsumerRecord<String, String> record : records) {
-
-				Reader reader = new BufferedReader(inputStream);
-
+				msgs.add(record.value());
 			}
+			in = new BufferedInputStream(new ByteArrayInputStream(msgs.toArray(new byte[msgs.size()])));
 
 		} catch (Exception e) {
 			// TODO: handle exception
