@@ -1,5 +1,9 @@
 package com.kafka.action.kafka_action;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,6 +12,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.record.Buffer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -223,7 +229,28 @@ public class KafkaNewConsumer {
 		/*
 		 * finally { consumer.close(); }
 		 */
+	}
 
+	private InputStream TopicMessage(KafkaConsumer<String, String> consumer) {
+		Reader inputStream = null;
+		try {
+
+			ConsumerRecords<String, String> records = consumer.poll(10000);
+			for (ConsumerRecord<String, String> record : records) {
+
+				Reader reader = new BufferedReader(inputStream);
+
+			}
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			LOG.error("消费消息发生异常！！", e);
+		}
+		return null;
+
+		/*
+		 * finally { consumer.close(); }
+		 */
 	}
 
 	public static void main(String[] args) {
