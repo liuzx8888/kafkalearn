@@ -231,7 +231,7 @@ public class KafkaNewConsumer {
 	}
 
 	@SuppressWarnings("unused")
-	private String MsgsToHdfs(KafkaConsumer<String, String> consumer) {
+	private InputStream MsgsToHdfs(KafkaConsumer<String, String> consumer) {
 		List<String> msgs = new LinkedList<String>();
 		try {
 
@@ -240,7 +240,12 @@ public class KafkaNewConsumer {
 			for (ConsumerRecord<String, String> record : records) {
 				msgs.add(record.value());
 			}
-			in = new BufferedInputStream(new ByteArrayInputStream(msgs.toArray(new byte[msgs.size()])));
+
+			/*
+			 * in = new BufferedReader(new CharArrayReader(msgs.toString().toCharArray()));
+			 */
+			in = new BufferedInputStream(new ByteArrayInputStream(msgs.toString().getBytes()));
+			return in;
 
 		} catch (Exception e) {
 			// TODO: handle exception

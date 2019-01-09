@@ -14,6 +14,10 @@ public class App
         System.out.println(Arrays.asList(BROKER_LIST.split(",")));
         
         System.out.println(Arrays.asList(StringUtils.split(BROKER_LIST, ",")));
+        
+        
+        
+        
     }
 
 }

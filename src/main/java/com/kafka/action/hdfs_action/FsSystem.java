@@ -25,6 +25,9 @@ public class FsSystem {
 		try {
 			CONF = new Configuration();
 			FS = FileSystem.get(CONF);
+			CONF.set("mapreduce.jobtracker.address", "192.168.1.70:49001");
+			CONF.set("mapreduce.framework.name", "yarn");
+			CONF.set("yarn.resourcemanager.address", "192.168.1.70:8032");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -48,7 +51,6 @@ public class FsSystem {
 			throws IllegalArgumentException, IOException {
 
 		FSDataOutputStream outputStream = fs.create(new Path(path), new Progressable() {
-
 			@Override
 			public void progress() {
 				// TODO Auto-generated method stub
