@@ -15,10 +15,10 @@ import org.apache.log4j.Logger;
 
 public class FsSystem {
 
-	private static final Logger LOG = Logger.getLogger(FsSystem.class);
-	private static FileSystem FS = null;
-	private static Configuration CONF = null;
-	private static FSDataInputStream inputStream = null;
+	public static final Logger LOG = Logger.getLogger(FsSystem.class);
+	public static FileSystem FS = null;
+	public static Configuration CONF = null;
+	public static FSDataInputStream inputStream = null;
 
 	static {
 
@@ -34,20 +34,23 @@ public class FsSystem {
 		}
 	}
 
-	private Boolean mkdirs(FileSystem fs, String path) throws Exception {
-
+	public Boolean mkdirs(FileSystem fs, String path) throws Exception {
+		Boolean rs = null;
 		if (fs.exists(new Path(path))) {
 
-			System.err.println(path + " 已经存在, 请重新创建！！！");
-			return false;
+			System.out.println(path + " 已经存在, 请重新创建！！！");
+			rs = false;
 		} else {
 			fs.mkdirs(fs, new Path(path), new FsPermission(FsPermission.getDirDefault()));
-			return true;
+			System.out.println(path + " 已经成功创建！！！");
+			rs = true;
 		}
+
+		return rs;
 
 	}
 
-	private String outputdata(FileSystem fs, InputStream inputStream, String path)
+	public String outputdata(FileSystem fs, InputStream inputStream, String path)
 			throws IllegalArgumentException, IOException {
 
 		FSDataOutputStream outputStream = fs.create(new Path(path), new Progressable() {
@@ -58,8 +61,19 @@ public class FsSystem {
 			}
 		});
 		IOUtils.copyBytes(inputStream, outputStream, 4096, false);
+		/* IOUtils.closeStream(outputStream); */
 		return null;
 
 	}
+
+/*	public static void main(String[] args) {
+		FsSystem fs = new FsSystem();
+		try {
+			fs.mkdirs(FS, "/TAB");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}*/
 
 }

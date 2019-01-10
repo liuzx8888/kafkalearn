@@ -23,24 +23,24 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
-public class KafkaNewConsumer {
+public class KafkaNewConsumer implements Consumer {
 
-	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
-	private static final int MSG_SIZE = 100;
-	private static final int TIME_OUT = 100;
-	private static final String TOPIC = "stock-quotation";
-	private static final String GROUPID = "test";
-	private static final String CLIENTID = "test";
+	public static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
+	public static final int MSG_SIZE = 100;
+	public static final int TIME_OUT = 100;
+	public static final String TOPIC = "stock-quotation";
+	public static final String GROUPID = "test";
+	public static final String CLIENTID = "test";
 	/*
 	 * private static final String BROKER_LIST =
 	 * "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
 	 */
-	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
-	private static final int AUTOCOMMITOFFSET = 0;
+	public static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
+	public static final int AUTOCOMMITOFFSET = 0;
 
-	private static Properties pops = null;
+	public static Properties pops = null;
 
-	private static KafkaConsumer<String, String> kafkaConsumerconsumer = null;
+	public static KafkaConsumer<String, String> kafkaConsumerconsumer = null;
 
 	static {
 		// 1.构建用于实例化KafkaConsumer 的 properties 信息
@@ -51,7 +51,7 @@ public class KafkaNewConsumer {
 
 	/* 初始化配置文件 */
 	@SuppressWarnings("unused")
-	private static Properties initProperties() {
+	public static Properties initProperties() {
 
 		pops = new Properties();
 		pops.put("bootstrap.servers", BROKER_LIST);
@@ -74,7 +74,7 @@ public class KafkaNewConsumer {
 
 	/* 订阅主题, 消费消息,自动提交偏移量 */
 	@SuppressWarnings("unused")
-	private static void subscribeTopicAuto(KafkaConsumer<String, String> consumer, String topic) {
+	public static void subscribeTopicAuto(KafkaConsumer<String, String> consumer, String topic) {
 		if (AUTOCOMMITOFFSET == 1) {
 			consumer.subscribe(Arrays.asList(topic));
 			ConsumerTopicMessage(consumer);
@@ -84,9 +84,8 @@ public class KafkaNewConsumer {
 
 	}
 
-	/* 订阅主题, 消费消息,手动提交偏移量 */
 	@SuppressWarnings("unused")
-	private static void subscribeTopicCustom1(KafkaConsumer<String, String> consumer, String topic) {
+	public static void subscribeTopicCustom1(KafkaConsumer<String, String> consumer, String topic) {
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic), new ConsumerRebalanceListener() {
 				@Override
@@ -118,21 +117,30 @@ public class KafkaNewConsumer {
 
 	}
 
-	private static void subscribeTopicCustom(KafkaConsumer<String, String> consumer, String topic) {
+	/* 订阅主题, 消费消息,手动提交偏移量 */
+	public InputStream subscribeTopicCustom(KafkaConsumer<String, String> consumer, String topic) {
 		int minCommitSize = 10;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
 		int icount1 = 0;// 消息计数器
+		InputStream in = null;
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic));
 			while (true) {
 				try {
+					List<String> msgs = new LinkedList<String>();
 					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 					for (ConsumerRecord<String, String> record : records) {
 						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
 								record.partition(), record.offset(), record.key(), record.value());
+						msgs.add(record.value());
 						icount++;
 						icount1++;
+
+						in = new BufferedInputStream(new ByteArrayInputStream(msgs.toString().getBytes()));
+						return in;
+
 					}
+
 					if (icount >= minCommitSize) {
 						System.out.println(icount1);
 						consumer.commitAsync(new OffsetCommitCallback() {
@@ -161,11 +169,12 @@ public class KafkaNewConsumer {
 				 */
 			}
 		}
+		return in;
 	}
 
 	/* 订阅特定分区 */
 	@SuppressWarnings("unused")
-	private static void subscribeTopicPartition(KafkaConsumer<String, String> consumer, String topic,
+	public static void subscribeTopicPartition(KafkaConsumer<String, String> consumer, String topic,
 			int... partitions) {
 		ArrayList<TopicPartition> Topicpartitions = new ArrayList<TopicPartition>();
 		for (int partitionId : partitions) {
@@ -179,7 +188,7 @@ public class KafkaNewConsumer {
 
 	/* 订阅主题, 消费消息,按时间戳消费消息 */
 	@SuppressWarnings("unused")
-	private static void subscribeTopicTimestamp(KafkaConsumer<String, String> consumer, String topic,
+	public static void subscribeTopicTimestamp(KafkaConsumer<String, String> consumer, String topic,
 			int... partitions) {
 		ArrayList<TopicPartition> Topicpartitions = new ArrayList<TopicPartition>();
 		for (int partitionId : partitions) {
@@ -212,7 +221,7 @@ public class KafkaNewConsumer {
 	}
 
 	/* 获取消息 */
-	private static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer) {
+	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer) {
 		try {
 			ConsumerRecords<String, String> records = consumer.poll(10000);
 			for (ConsumerRecord<String, String> record : records) {
@@ -231,10 +240,10 @@ public class KafkaNewConsumer {
 	}
 
 	@SuppressWarnings("unused")
-	private InputStream MsgsToHdfs(KafkaConsumer<String, String> consumer) {
-		List<String> msgs = new LinkedList<String>();
-		try {
+	public InputStream MsgsToHdfs(KafkaConsumer<String, String> consumer) {
 
+		try {
+			List<String> msgs = new LinkedList<String>();
 			InputStream in = null;
 			ConsumerRecords<String, String> records = consumer.poll(10000);
 			for (ConsumerRecord<String, String> record : records) {
