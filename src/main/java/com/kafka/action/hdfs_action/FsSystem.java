@@ -60,20 +60,20 @@ public class FsSystem {
 
 			}
 		});
-		IOUtils.copyBytes(inputStream, outputStream, 4096, false);
+
+
+		while (inputStream.read() != -1) {
+			IOUtils.copyBytes(inputStream, outputStream, 4096000, false);
+		}
 		/* IOUtils.closeStream(outputStream); */
 		return null;
 
 	}
 
-/*	public static void main(String[] args) {
-		FsSystem fs = new FsSystem();
-		try {
-			fs.mkdirs(FS, "/TAB");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
+	/*
+	 * public static void main(String[] args) { FsSystem fs = new FsSystem(); try {
+	 * fs.mkdirs(FS, "/TAB"); } catch (Exception e) { // TODO Auto-generated catch
+	 * block e.printStackTrace(); } }
+	 */
 
 }
