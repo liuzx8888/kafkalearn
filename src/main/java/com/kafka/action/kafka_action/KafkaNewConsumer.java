@@ -260,6 +260,7 @@ public class KafkaNewConsumer implements Consumer {
 		String Time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 		String path = "/" + topic + "/" + topic;
 		Path ph = new Path(path);
+		String rs = "-1";
 		try {
 			conf = new Configuration();
 			conf.set("mapreduce.jobtracker.address", "192.168.1.70:49001");
@@ -274,20 +275,21 @@ public class KafkaNewConsumer implements Consumer {
 			e.printStackTrace();
 		}
 
-		int minCommitSize = 10;// 至少需要处理10条再提交
+		int minCommitSize = 5;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
 		int icount1 = 0;// 消息计数器
 		List<String> msgs = null;
 
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic));
-			while (true) {
-				try {
-					if (fs == null) {
-						fs = FileSystem.get(conf);
-					}
-					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(1);
+
+			try {
+				if (fs == null) {
+					fs = FileSystem.get(conf);
+				}
+				msgs = new LinkedList<String>();
+				ConsumerRecords<String, String> records = consumer.poll(100000);
+				if (records.toString().length() > 0) {
 					for (ConsumerRecord<String, String> record : records) {
 						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
 								record.partition(), record.offset(), record.key(), record.value());
@@ -307,6 +309,7 @@ public class KafkaNewConsumer implements Consumer {
 						outputStream.write(msgs.toString().toString().getBytes("UTF-8"));
 						outputStream.write("/n".getBytes("UTF-8"));
 						fs.close();
+
 						/*
 						 * inputStream = new BufferedInputStream(new
 						 * ByteArrayInputStream(msgs.toString().getBytes()));
@@ -332,16 +335,17 @@ public class KafkaNewConsumer implements Consumer {
 						});
 
 						icount = 0;
-
+						rs = "写入HDFS成功";
 					}
-				} catch (Exception e) {
-					// TODO: handle exception
-					LOG.error("消费消息发生异常！！", e);
-					// break;
 				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				LOG.error("消费消息发生异常！！", e);
+				// break;
+				rs = "写入HDFS失败！！";
 			}
 		}
-		return null;
+		return rs;
 	}
 
 	public static void main(String[] args) throws IOException {
