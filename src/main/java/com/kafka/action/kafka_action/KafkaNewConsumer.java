@@ -46,7 +46,7 @@ public class KafkaNewConsumer implements Consumer {
 	 * "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
 	 */
 	public static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
-	public static final int AUTOCOMMITOFFSET = 0;
+	public static final int AUTOCOMMITOFFSET = 1;
 
 	public static Properties pops = null;
 
@@ -87,7 +87,8 @@ public class KafkaNewConsumer implements Consumer {
 	public static void subscribeTopicAuto(KafkaConsumer<String, String> consumer, String topic) {
 		if (AUTOCOMMITOFFSET == 1) {
 			consumer.subscribe(Arrays.asList(topic));
-			ConsumerTopicMessage(consumer);
+			ConsumerTopicMessage(consumer, topic);
+
 		} else {
 			LOG.info("设置了手动提交，请检查配置信息！！！");
 		}
@@ -123,7 +124,7 @@ public class KafkaNewConsumer implements Consumer {
 			LOG.info("设置了自动提交，请检查配置信息！！！");
 		}
 
-		ConsumerTopicMessage(consumer);
+		ConsumerTopicMessage(consumer, topic);
 
 	}
 
@@ -151,7 +152,6 @@ public class KafkaNewConsumer implements Consumer {
 					if (icount >= minCommitSize) {
 						System.out.println(icount1);
 						System.out.println(msgs);
-						in = new BufferedInputStream(new ByteArrayInputStream(msgs.toString().getBytes()));
 						consumer.commitAsync(new OffsetCommitCallback() {
 
 							@Override
@@ -193,7 +193,7 @@ public class KafkaNewConsumer implements Consumer {
 		}
 
 		consumer.assign(Topicpartitions);
-		ConsumerTopicMessage(consumer);
+		ConsumerTopicMessage(consumer, topic);
 
 	}
 
@@ -223,7 +223,7 @@ public class KafkaNewConsumer implements Consumer {
 						consumer.seek(partition, entry.getValue().offset());
 					}
 				}
-				ConsumerTopicMessage(consumer);
+				ConsumerTopicMessage(consumer, topic);
 
 			} catch (Exception e) {
 				// TODO: handle exception
@@ -232,13 +232,21 @@ public class KafkaNewConsumer implements Consumer {
 	}
 
 	/* 获取消息 */
-	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer) {
+	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer, String topic) {
+		List<String> msgs = null;
+		String path = "/" + topic + "/" + topic;
+		Path ph = new Path(path);
 		try {
-			ConsumerRecords<String, String> records = consumer.poll(10000);
+			msgs = new LinkedList<String>();
+			ConsumerRecords<String, String> records = consumer.poll(1000);
+
 			for (ConsumerRecord<String, String> record : records) {
 				System.out.printf("消费的消息: %n  partition = %d,offset = %d, key = %s , value = %s%n", record.partition(),
 						record.offset(), record.key(), record.value());
+				msgs.add(record.value());
 			}
+
+			writeToHdfs(ph, msgs);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -254,13 +262,79 @@ public class KafkaNewConsumer implements Consumer {
 	public String MsgsToHdfs(KafkaConsumer<String, String> consumer, String topic) throws IOException {
 
 		InputStream inputStream = null;
-		FSDataOutputStream outputStream = null;
-		Configuration conf = null;
-		FileSystem fs = null;
 		String Time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 		String path = "/" + topic + "/" + topic;
 		Path ph = new Path(path);
-		String rs = "-1";
+		String rs = null;
+
+		int minCommitSize = 10;// 至少需要处理10条再提交
+		int icount = 0;// 消息计数器
+		int icount1 = 0;// 消息计数器
+		List<String> msgs = null;
+
+		if (AUTOCOMMITOFFSET == 0) {
+			consumer.subscribe(Arrays.asList(topic));
+			while (true) {
+				try {
+					msgs = new LinkedList<String>();
+					ConsumerRecords<String, String> records = consumer.poll(1000);
+					if (records.toString().length() > 0) {
+						for (ConsumerRecord<String, String> record : records) {
+							System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+									record.topic(), record.partition(), record.offset(), record.key(), record.value());
+							msgs.add(record.value());
+							icount++;
+							icount1++;
+						}
+
+						if (icount >= minCommitSize) {
+
+							/*
+							 * inputStream = new BufferedInputStream(new
+							 * ByteArrayInputStream(msgs.toString().getBytes()));
+							 * System.out.println(inputStream.toString().length());
+							 * 
+							 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
+							 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
+							 * // TODO: handle exception return "写入HDFS失败"; }
+							 */
+							if (this.writeToHdfs(ph, msgs)) {
+								consumer.commitAsync(new OffsetCommitCallback() {
+
+									@Override
+									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+											Exception exception) {
+										// TODO Auto-generated method stub
+										if (exception == null) {
+											LOG.info("提交成功!!!");
+										} else {
+											LOG.error("提交失败!!!");
+										}
+									}
+								});
+								rs = "写入Hdfs" + ph.getName() + "成功！！！";
+								;
+								icount = 0;
+							}
+						}
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+					LOG.error("消费消息发生异常！！", e);
+					rs = "写入HDFS失败！！";
+					break;
+				}
+			}
+		}
+		System.out.println(rs);
+		return rs;
+	}
+
+	public static Boolean writeToHdfs(Path path, List<String> msgs) throws IOException {
+		Configuration conf = null;
+		FileSystem fs = null;
+		FSDataOutputStream outputStream = null;
+		Boolean rs = null;
 		try {
 			conf = new Configuration();
 			conf.set("mapreduce.jobtracker.address", "192.168.1.70:49001");
@@ -275,77 +349,25 @@ public class KafkaNewConsumer implements Consumer {
 			e.printStackTrace();
 		}
 
-		int minCommitSize = 5;// 至少需要处理10条再提交
-		int icount = 0;// 消息计数器
-		int icount1 = 0;// 消息计数器
-		List<String> msgs = null;
-
-		if (AUTOCOMMITOFFSET == 0) {
-			consumer.subscribe(Arrays.asList(topic));
-
-			try {
-				if (fs == null) {
-					fs = FileSystem.get(conf);
-				}
-				msgs = new LinkedList<String>();
-				ConsumerRecords<String, String> records = consumer.poll(100000);
-				if (records.toString().length() > 0) {
-					for (ConsumerRecord<String, String> record : records) {
-						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
-								record.partition(), record.offset(), record.key(), record.value());
-						msgs.add(record.value());
-						icount++;
-						icount1++;
-					}
-
-					if (icount >= minCommitSize) {
-						System.out.println(icount1);
-						System.out.println(msgs.toString());
-
-						if (!fs.exists(ph)) {
-							fs.createNewFile(ph);
-						}
-						outputStream = fs.append(ph);
-						outputStream.write(msgs.toString().toString().getBytes("UTF-8"));
-						outputStream.write("/n".getBytes("UTF-8"));
-						fs.close();
-
-						/*
-						 * inputStream = new BufferedInputStream(new
-						 * ByteArrayInputStream(msgs.toString().getBytes()));
-						 * System.out.println(inputStream.toString().length());
-						 * 
-						 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-						 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-						 * // TODO: handle exception return "写入HDFS失败"; }
-						 */
-
-						consumer.commitAsync(new OffsetCommitCallback() {
-
-							@Override
-							public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-									Exception exception) {
-								// TODO Auto-generated method stub
-								if (exception == null) {
-									LOG.info("提交成功!!!");
-								} else {
-									LOG.error("提交失败!!!");
-								}
-							}
-						});
-
-						icount = 0;
-						rs = "写入HDFS成功";
-					}
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-				LOG.error("消费消息发生异常！！", e);
-				// break;
-				rs = "写入HDFS失败！！";
+		try {
+			if (!fs.exists(path)) {
+				fs.createNewFile(path);
 			}
+			outputStream = fs.append(path);
+			outputStream.write(msgs.toString().toString().getBytes("UTF-8"));
+			outputStream.write("/n".getBytes("UTF-8"));
+			rs = true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			rs = false;
+			e.printStackTrace();
+		} finally {
+			fs.close();
+			outputStream.close();
 		}
+
 		return rs;
+
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -356,11 +378,11 @@ public class KafkaNewConsumer implements Consumer {
 		 */
 
 		KafkaNewConsumer target = new KafkaNewConsumer();
-		/* target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); */
+		 target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); 
 		/* target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); */
 		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */
-		String rs = target.MsgsToHdfs(kafkaConsumerconsumer, TOPIC);
-		System.out.println(rs);
+		/*String rs = target.MsgsToHdfs(kafkaConsumerconsumer, TOPIC);*/
+		/*System.out.println(rs);*/
 		kafkaConsumerconsumer.close();
 
 	}
