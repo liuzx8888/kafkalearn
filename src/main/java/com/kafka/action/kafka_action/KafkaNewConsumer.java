@@ -226,9 +226,9 @@ public class KafkaNewConsumer implements Consumer {
 			}
 			FsFileManager FsFile = new FsFileManager();
 			String path = "/" + "OGG" + "/" + topic.substring(4, topic.length());
-			int id = FsFile.File_Id(new Path(path), msgs.size());
-			String path_Id = "/" + "OGG" + "/" + topic.substring(4, topic.length()) + "/"
-					+ topic.substring(4, topic.length()) + String.valueOf(id);
+			int id = FsFile.File_Id(new Path(path), msgs.size(), topic.substring(4, topic.length()));
+			String path_Id = path + "/" + topic.substring(4, topic.length()) + "_" + String.valueOf(id);
+
 			Path pathId = new Path(path);
 
 			writeToHdfs(pathId, msgs);
@@ -322,9 +322,9 @@ public class KafkaNewConsumer implements Consumer {
 		FileSystem fs = FileSystem.get(conf);
 
 		try {
-			if (!fs.exists(path)) {
-				fs.createNewFile(path);
-			}
+			/*
+			 * if (!fs.exists(path)) { fs.createNewFile(path); }
+			 */
 			outputStream = fs.append(path);
 			if (msgs.size() > 0) {
 				outputStream.write(msgs.toString().getBytes("utf-8"));

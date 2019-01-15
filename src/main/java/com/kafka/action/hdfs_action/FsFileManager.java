@@ -39,13 +39,19 @@ public class FsFileManager {
 		return Arrays.asList(files);
 	}
 
-	public int File_Id(Path path, float size) throws FileNotFoundException, IOException {
+	public int File_Id(Path path, float size, String init) throws FileNotFoundException, IOException {
 		int begin_id = 1;
-		FileStatus[] files = FS.listStatus(path);
-		List<FileStatus> FileStatus = Arrays.asList(files);
-		for (FileStatus File : FileStatus) {
-			if ((File.getLen() + size) / 1024 / 1024 > 134217728)
-				begin_id++;
+
+		if (!FS.exists(path)) {
+			FS.createNewFile(new Path(path.toString() + "/" + init + "_1"));
+			FS.close();
+		} else {
+			FileStatus[] files = FS.listStatus(path);
+			List<FileStatus> FileStatus = Arrays.asList(files);
+			for (FileStatus File : FileStatus) {
+				if ((File.getLen() + size) > 134217728)
+					begin_id++;
+			}
 		}
 
 		return begin_id;

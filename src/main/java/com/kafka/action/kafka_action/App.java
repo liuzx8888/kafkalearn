@@ -55,7 +55,7 @@ public class App {
 		    try {
 		    	List<FileStatus> FileStatus=fileManager.getFile(new Path(path1));
 		    	System.out.println(FileStatus.toString());
-		    	int i =fileManager.File_Id(new Path(path1),264217728);
+		    	int i =fileManager.File_Id(new Path(path1),264217728,path1);
 		    	System.out.println(i);
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
