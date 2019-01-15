@@ -1,15 +1,19 @@
 package com.kafka.action.kafka_action;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.common.security.JaasUtils;
 import kafka.admin.AdminUtils;
 import kafka.admin.BrokerMetadata;
 import kafka.server.ConfigType;
 import kafka.utils.ZkUtils;
+import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 public class TopicManager {
@@ -21,7 +25,6 @@ public class TopicManager {
 	static {
 		utils = null;
 		utils = ZkUtils.apply(ZK_CONNECT, SESSION_TIMEOUT, CONNECT_TIMEOUT, JaasUtils.isZkSecurityEnabled());
-
 	}
 
 	/*
@@ -31,7 +34,18 @@ public class TopicManager {
 			Properties Properties) {
 		AdminUtils.createTopic(utils, Topic, partitions, replicationFactor, Properties,
 				AdminUtils.createTopic$default$6());
+	}
 
+	/*
+	 * 查询主题
+	 */
+
+	public static List<String> getTopicList(String prefix, String postfix) {
+		List<String> allTopicList = JavaConversions.seqAsJavaList(utils.getAllTopics());
+		List<String> topicList = allTopicList.stream()
+				.filter(topic -> topic.startsWith(prefix) && topic.endsWith(postfix)).collect(Collectors.toList());
+
+		return topicList;
 	}
 
 	/*
@@ -102,12 +116,17 @@ public class TopicManager {
 
 	public static void main(String[] args) {
 		String Topic = "stock-quotation";
-		TopicManager.createtopic(utils, Topic, 4, 2, new Properties());
-		/*
-		 * TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
-		 * TopicManager.getproperties(utils, Topic); TopicManager.addpartition(utils,
-		 * Topic, 9); TopicManager.assignreplicas(utils, Topic, 11, 4);
-		 */
+		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
+
+		// TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
+		// TopicManager.getproperties(utils, Topic);
+		/* TopicManager.addpartition(utils,Topic, 9); */
+		/* TopicManager.assignreplicas(utils, Topic, 11, 4); */
+		List<String> allTopicList = TopicManager.getTopicList("OGG", "");
+		for (String topic : allTopicList) {
+			System.out.println(topic);
+		}
+
 		utils.close();
 
 	}

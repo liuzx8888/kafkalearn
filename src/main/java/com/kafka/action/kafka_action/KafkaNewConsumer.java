@@ -1,7 +1,5 @@
 package com.kafka.action.kafka_action;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -20,8 +18,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.util.Progressable;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -32,54 +28,36 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
+import com.kafka.action.util.ConfigUtil;
+import com.kafka.action.util.SystemEnum;
+
 public class KafkaNewConsumer implements Consumer {
 
-	public static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
-	public static final int MSG_SIZE = 100;
-	public static final int TIME_OUT = 100;
+	private static final Logger LOG = Logger.getLogger(KafkaProducerThread.class);
+	private static int TIME_OUT = 1000;
 	/* public static final String TOPIC = "stock-quotation"; */
-	public static final String TOPIC = "TAB";
-	public static final String GROUPID = "test";
-	public static final String CLIENTID = "test";
-	/*
-	 * private static final String BROKER_LIST =
-	 * "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
-	 */
-	public static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
-	public static final int AUTOCOMMITOFFSET = 1;
 
-	public static Properties pops = null;
-
+	private static int AUTOCOMMITOFFSET;
+	private static Properties KAFKAPROP = null;
+	private static Properties HDFSPROP = null;
 	public static KafkaConsumer<String, String> kafkaConsumerconsumer = null;
 
 	static {
 		// 1.构建用于实例化KafkaConsumer 的 properties 信息
-		Properties pops = initProperties();
+
+		KAFKAPROP = ConfigUtil.getProperties(SystemEnum.KAFKA);
+		HDFSPROP = ConfigUtil.getProperties(SystemEnum.HDFS);
+
+		if (KAFKAPROP.getProperty("enable.auto.commit").equalsIgnoreCase("true")) {
+			AUTOCOMMITOFFSET = 1;
+		} else {
+			AUTOCOMMITOFFSET = 0;
+		}
+
+		TIME_OUT = Integer.parseInt(KAFKAPROP.getProperty("time_out"));
+		KAFKAPROP.remove("TIME_OUT");
 		// 2.初始化一个KafkaProducer
-		kafkaConsumerconsumer = new KafkaConsumer<>(pops);
-	}
-
-	/* 初始化配置文件 */
-	@SuppressWarnings("unused")
-	public static Properties initProperties() {
-
-		pops = new Properties();
-		pops.put("bootstrap.servers", BROKER_LIST);
-		pops.put("group.id", GROUPID);
-		pops.put("client.id", CLIENTID);
-		if (AUTOCOMMITOFFSET == 0) {
-			pops.put("fetch.max.bytes", 1024);// 一次获取最大数据了为1K
-			pops.put("enable.auto.commit", false); // 消费者偏移量管理，关闭自动提交
-		}
-		if (AUTOCOMMITOFFSET == 1) {
-			pops.put("enable.auto.commit", true);// 消费者偏移量管理，设置自动提交
-			pops.put("auto.commit.interval.ms", 1000); // 消费者偏移量管理，设置自动提交间隔
-		}
-
-		pops.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		pops.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-
-		return pops;
+		kafkaConsumerconsumer = new KafkaConsumer<>(KAFKAPROP);
 	}
 
 	/* 订阅主题, 消费消息,自动提交偏移量 */
@@ -129,6 +107,7 @@ public class KafkaNewConsumer implements Consumer {
 	}
 
 	/* 订阅主题, 消费消息,手动提交偏移量 */
+	@SuppressWarnings("unused")
 	public InputStream subscribeTopicCustom(KafkaConsumer<String, String> consumer, String topic) {
 		int minCommitSize = 10;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
@@ -208,7 +187,7 @@ public class KafkaNewConsumer implements Consumer {
 
 			try {
 				Map<TopicPartition, Long> timestampToSearch = new HashMap<TopicPartition, Long>();
-				TopicPartition partition = new TopicPartition(TOPIC, partitionId);
+				TopicPartition partition = new TopicPartition(topic, partitionId);
 
 				// 查询12小时之前的
 				timestampToSearch.put(partition, (System.currentTimeMillis() - 72 * 360000 * 1000));
@@ -234,11 +213,13 @@ public class KafkaNewConsumer implements Consumer {
 	/* 获取消息 */
 	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer, String topic) {
 		List<String> msgs = null;
-		String path = "/" + topic + "/" + topic;
+
+		String path = "/" + "OGG" + "/" + topic.substring(4, topic.length()) + "/" + topic.substring(4, topic.length());
+
 		Path ph = new Path(path);
 		try {
 			msgs = new LinkedList<String>();
-			ConsumerRecords<String, String> records = consumer.poll(1000);
+			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 
 			for (ConsumerRecord<String, String> record : records) {
 				System.out.printf("消费的消息: %n  partition = %d,offset = %d, key = %s , value = %s%n", record.partition(),
@@ -253,9 +234,6 @@ public class KafkaNewConsumer implements Consumer {
 			LOG.error("消费消息发生异常！！", e);
 		}
 
-		/*
-		 * finally { consumer.close(); }
-		 */
 	}
 
 	@SuppressWarnings("unused")
@@ -298,9 +276,9 @@ public class KafkaNewConsumer implements Consumer {
 							 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
 							 * // TODO: handle exception return "写入HDFS失败"; }
 							 */
-							if (this.writeToHdfs(ph, msgs)) {
-								consumer.commitAsync(new OffsetCommitCallback() {
 
+							if (writeToHdfs(ph, msgs)) {
+								consumer.commitAsync(new OffsetCommitCallback() {
 									@Override
 									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
 											Exception exception) {
@@ -332,31 +310,23 @@ public class KafkaNewConsumer implements Consumer {
 
 	public static Boolean writeToHdfs(Path path, List<String> msgs) throws IOException {
 		Configuration conf = null;
-		FileSystem fs = null;
+
 		FSDataOutputStream outputStream = null;
 		Boolean rs = null;
-		try {
-			conf = new Configuration();
-			conf.set("mapreduce.jobtracker.address", "192.168.1.70:49001");
-			conf.set("mapreduce.framework.name", "yarn");
-			conf.set("yarn.resourcemanager.address", "192.168.1.70:8032");
-			conf.setBoolean("dfs.support.append", true);
-			conf.set("dfs.client.block.write.replace-datanode-on-failure.policy", "NEVER");
-			conf.setBoolean("dfs.client.block.write.replace-datanode-on-failure.enable", true);
-			fs = FileSystem.get(conf);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		conf = ConfigUtil.getConfiguration(HDFSPROP);
+		FileSystem fs = FileSystem.get(conf);
 
 		try {
 			if (!fs.exists(path)) {
 				fs.createNewFile(path);
 			}
 			outputStream = fs.append(path);
-			outputStream.write(msgs.toString().toString().getBytes("UTF-8"));
-			outputStream.write("/n".getBytes("UTF-8"));
-			rs = true;
+			if (msgs.size() > 0) {
+				outputStream.write(msgs.toString().getBytes("utf-8"));
+				outputStream.write("/n".getBytes("utf-8"));
+				rs = true;
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			rs = false;
@@ -377,12 +347,20 @@ public class KafkaNewConsumer implements Consumer {
 		 * Thread(target).start(); }
 		 */
 
-		KafkaNewConsumer target = new KafkaNewConsumer();
-		 target.subscribeTopicAuto(kafkaConsumerconsumer, TOPIC); 
+		List<String> topics = TopicManager.getTopicList("OGG", "");
+		for (String topic : topics) {
+
+			KafkaNewConsumer target = new KafkaNewConsumer();
+			if (AUTOCOMMITOFFSET == 1) {
+				target.subscribeTopicAuto(kafkaConsumerconsumer, topic);
+			} else {
+				String rs = target.MsgsToHdfs(kafkaConsumerconsumer, topic);
+				System.out.println(rs);
+			}
+		}
+
 		/* target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); */
 		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */
-		/*String rs = target.MsgsToHdfs(kafkaConsumerconsumer, TOPIC);*/
-		/*System.out.println(rs);*/
 		kafkaConsumerconsumer.close();
 
 	}
