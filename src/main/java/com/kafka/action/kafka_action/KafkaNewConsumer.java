@@ -28,6 +28,7 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
+import com.kafka.action.hdfs_action.FsFileManager;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
 
@@ -214,9 +215,6 @@ public class KafkaNewConsumer implements Consumer {
 	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer, String topic) {
 		List<String> msgs = null;
 
-		String path = "/" + "OGG" + "/" + topic.substring(4, topic.length()) + "/" + topic.substring(4, topic.length());
-
-		Path ph = new Path(path);
 		try {
 			msgs = new LinkedList<String>();
 			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
@@ -226,8 +224,14 @@ public class KafkaNewConsumer implements Consumer {
 						record.offset(), record.key(), record.value());
 				msgs.add(record.value());
 			}
+			FsFileManager FsFile = new FsFileManager();
+			String path = "/" + "OGG" + "/" + topic.substring(4, topic.length());
+			int id = FsFile.File_Id(new Path(path), msgs.size());
+			String path_Id = "/" + "OGG" + "/" + topic.substring(4, topic.length()) + "/"
+					+ topic.substring(4, topic.length()) + String.valueOf(id);
+			Path pathId = new Path(path);
 
-			writeToHdfs(ph, msgs);
+			writeToHdfs(pathId, msgs);
 
 		} catch (Exception e) {
 			// TODO: handle exception

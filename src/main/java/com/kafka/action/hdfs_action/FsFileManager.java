@@ -39,12 +39,12 @@ public class FsFileManager {
 		return Arrays.asList(files);
 	}
 
-	public int File_Id(Path path, int size) throws FileNotFoundException, IOException {
-		int begin_id = 0;
+	public int File_Id(Path path, float size) throws FileNotFoundException, IOException {
+		int begin_id = 1;
 		FileStatus[] files = FS.listStatus(path);
 		List<FileStatus> FileStatus = Arrays.asList(files);
 		for (FileStatus File : FileStatus) {
-			if ((File.getBlockSize() + size) / 1024 / 1024 > 128)
+			if ((File.getLen() + size) / 1024 / 1024 > 134217728)
 				begin_id++;
 		}
 
