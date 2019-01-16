@@ -120,47 +120,46 @@ public class KafkaNewConsumer implements Consumer {
 		List<String> msgs = null;
 		if (AUTOCOMMITOFFSET == 0) {
 			consumer.subscribe(Arrays.asList(topic));
-			while (true) {
-				try {
-					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
-					for (ConsumerRecord<String, String> record : records) {
-						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
-								record.partition(), record.offset(), record.key(), record.value());
-						msgs.add(record.value());
-						icount++;
-						icount1++;
-					}
 
-					if (icount >= minCommitSize) {
-						consumer.commitAsync(new OffsetCommitCallback() {
-
-							@Override
-							public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-									Exception exception) {
-								// TODO Auto-generated method stub
-								if (exception == null) {
-									LOG.info("提交成功!!!");
-								} else {
-									LOG.error("提交失败!!!");
-								}
-							}
-						});
-
-						icount = 0;
-						return in;
-					}
-
-				} catch (Exception e) {
-					// TODO: handle exception
-					LOG.error("消费消息发生异常！！", e);
-					break;
+			try {
+				msgs = new LinkedList<String>();
+				ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
+				for (ConsumerRecord<String, String> record : records) {
+					System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n", record.partition(),
+							record.offset(), record.key(), record.value());
+					msgs.add(record.value());
+					icount++;
+					icount1++;
 				}
-				/*
-				 * finally { consumer.close(); }
-				 */
+
+				if (icount >= minCommitSize) {
+					consumer.commitAsync(new OffsetCommitCallback() {
+
+						@Override
+						public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception exception) {
+							// TODO Auto-generated method stub
+							if (exception == null) {
+								LOG.info("提交成功!!!");
+							} else {
+								LOG.error("提交失败!!!");
+							}
+						}
+					});
+
+					icount = 0;
+					return in;
+				}
+
+			} catch (Exception e) {
+				// TODO: handle exception
+				LOG.error("消费消息发生异常！！", e);
+				// break;
 			}
+			/*
+			 * finally { consumer.close(); }
+			 */
 		}
+
 		return in;
 	}
 
@@ -248,64 +247,63 @@ public class KafkaNewConsumer implements Consumer {
 		List<String> msgs = null;
 
 		if (AUTOCOMMITOFFSET == 0) {
-			while (true) {
-				try {
-					consumer.subscribe(Arrays.asList(topic));
-					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
-					if (records.toString().length() > 0) {
-						for (ConsumerRecord<String, String> record : records) {
-							System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
-									record.topic(), record.partition(), record.offset(), record.key(), record.value());
-							msgs.add(record.value());
-							icount++;
-							icount1++;
-						}
 
-						if (icount >= minCommitSize) {
+			try {
+				consumer.subscribe(Arrays.asList(topic));
+				msgs = new LinkedList<String>();
+				ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
+				if (records.toString().length() > 0) {
+					for (ConsumerRecord<String, String> record : records) {
+						System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+								record.topic(), record.partition(), record.offset(), record.key(), record.value());
+						msgs.add(record.value());
+						icount++;
+						icount1++;
+					}
 
-							/*
-							 * inputStream = new BufferedInputStream(new
-							 * ByteArrayInputStream(msgs.toString().getBytes()));
-							 * System.out.println(inputStream.toString().length());
-							 * 
-							 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-							 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-							 * // TODO: handle exception return "写入HDFS失败"; }
-							 */
+					if (icount >= minCommitSize) {
 
-							FsFileManager FsFile = new FsFileManager();
-							Path pathId = FsFile.getpath(topic, msgs.size());
+						/*
+						 * inputStream = new BufferedInputStream(new
+						 * ByteArrayInputStream(msgs.toString().getBytes()));
+						 * System.out.println(inputStream.toString().length());
+						 * 
+						 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
+						 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
+						 * // TODO: handle exception return "写入HDFS失败"; }
+						 */
 
-							if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
+						FsFileManager FsFile = new FsFileManager();
+						Path pathId = FsFile.getpath(topic, msgs.size());
 
-								consumer.commitAsync(new OffsetCommitCallback() {
-									@Override
-									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-											Exception exception) {
-										// TODO Auto-generated method stub
-										if (exception == null) {
-											LOG.info("提交成功!!!");
-										} else {
-											LOG.error("提交失败!!!");
-										}
-									}
-								});
+						if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
+							consumer.commitAsync();
+//							consumer.commitAsync(new OffsetCommitCallback() {
+//								@Override
+//								public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+//										Exception exception) {
+//									// TODO Auto-generated method stub
+//									if (exception == null) {
+//										LOG.info("提交成功!!!");
+//									} else {
+//										LOG.error("提交失败!!!");
+//									}
+//								}
+//							});
 
-								rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
-								msgs = null;
-								icount = 0;
-							}
+							rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
+							icount = 0;
 						}
 					}
-				} catch (Exception e) {
-					// TODO: handle exception
-					LOG.error("消费消息发生异常！！", e);
-					rs = "写入HDFS失败！！";
-					break;
 				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				LOG.error("消费消息发生异常！！", e);
+				rs = "写入HDFS失败！！";
+				// break;
 			}
 		}
+
 		return rs;
 	}
 
