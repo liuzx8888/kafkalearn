@@ -27,10 +27,13 @@ import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
+import org.mortbay.log.Log;
 
 import com.kafka.action.hdfs_action.FsFileManager;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
+
+import kafka.utils.Scheduler;
 
 public class KafkaNewConsumer implements Consumer {
 
@@ -120,7 +123,7 @@ public class KafkaNewConsumer implements Consumer {
 			while (true) {
 				try {
 					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
+					ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
 					for (ConsumerRecord<String, String> record : records) {
 						System.out.printf("消费的消息: partition = %d,offset = %d, key = %s ,value = %s%n",
 								record.partition(), record.offset(), record.key(), record.value());
@@ -130,8 +133,6 @@ public class KafkaNewConsumer implements Consumer {
 					}
 
 					if (icount >= minCommitSize) {
-						System.out.println(icount1);
-						System.out.println(msgs);
 						consumer.commitAsync(new OffsetCommitCallback() {
 
 							@Override
@@ -225,13 +226,8 @@ public class KafkaNewConsumer implements Consumer {
 				msgs.add(record.value());
 			}
 			FsFileManager FsFile = new FsFileManager();
-			String path = "/" + "OGG" + "/" + topic.substring(4, topic.length());
-			int id = FsFile.File_Id(new Path(path), msgs.size(), topic.substring(4, topic.length()));
-			String path_Id = path + "/" + topic.substring(4, topic.length()) + "_" + String.valueOf(id);
-
-			Path pathId = new Path(path);
-
-			writeToHdfs(pathId, msgs);
+			Path pathId = FsFile.getpath(topic, msgs.size());
+			writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -244,9 +240,6 @@ public class KafkaNewConsumer implements Consumer {
 	public String MsgsToHdfs(KafkaConsumer<String, String> consumer, String topic) throws IOException {
 
 		InputStream inputStream = null;
-		String Time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-		String path = "/" + topic + "/" + topic;
-		Path ph = new Path(path);
 		String rs = null;
 
 		int minCommitSize = 10;// 至少需要处理10条再提交
@@ -255,11 +248,11 @@ public class KafkaNewConsumer implements Consumer {
 		List<String> msgs = null;
 
 		if (AUTOCOMMITOFFSET == 0) {
-			consumer.subscribe(Arrays.asList(topic));
 			while (true) {
 				try {
+					consumer.subscribe(Arrays.asList(topic));
 					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(1000);
+					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 					if (records.toString().length() > 0) {
 						for (ConsumerRecord<String, String> record : records) {
 							System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
@@ -281,7 +274,11 @@ public class KafkaNewConsumer implements Consumer {
 							 * // TODO: handle exception return "写入HDFS失败"; }
 							 */
 
-							if (writeToHdfs(ph, msgs)) {
+							FsFileManager FsFile = new FsFileManager();
+							Path pathId = FsFile.getpath(topic, msgs.size());
+
+							if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
+
 								consumer.commitAsync(new OffsetCommitCallback() {
 									@Override
 									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
@@ -294,8 +291,9 @@ public class KafkaNewConsumer implements Consumer {
 										}
 									}
 								});
-								rs = "写入Hdfs" + ph.getName() + "成功！！！";
-								;
+
+								rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
+								msgs = null;
 								icount = 0;
 							}
 						}
@@ -308,23 +306,25 @@ public class KafkaNewConsumer implements Consumer {
 				}
 			}
 		}
-		System.out.println(rs);
 		return rs;
 	}
 
-	public static Boolean writeToHdfs(Path path, List<String> msgs) throws IOException {
+	public static Boolean writeToHdfs(Path path, List<String> msgs, int AUTOCOMMITOFFSET) throws IOException {
 		Configuration conf = null;
 
 		FSDataOutputStream outputStream = null;
 		Boolean rs = null;
 
 		conf = ConfigUtil.getConfiguration(HDFSPROP);
-		FileSystem fs = FileSystem.get(conf);
+		FileSystem fs = null;
+		fs = FileSystem.get(conf);
 
 		try {
-			/*
-			 * if (!fs.exists(path)) { fs.createNewFile(path); }
-			 */
+
+			// if (!fs.exists(path)) {
+			// fs.createNewFile(path);
+			// }
+
 			outputStream = fs.append(path);
 			if (msgs.size() > 0) {
 				outputStream.write(msgs.toString().getBytes("utf-8"));
@@ -335,7 +335,9 @@ public class KafkaNewConsumer implements Consumer {
 			// TODO Auto-generated catch block
 			rs = false;
 			e.printStackTrace();
-		} finally {
+		}
+
+		finally {
 			fs.close();
 			outputStream.close();
 		}
@@ -357,15 +359,16 @@ public class KafkaNewConsumer implements Consumer {
 			KafkaNewConsumer target = new KafkaNewConsumer();
 			if (AUTOCOMMITOFFSET == 1) {
 				target.subscribeTopicAuto(kafkaConsumerconsumer, topic);
+				kafkaConsumerconsumer.close();
 			} else {
 				String rs = target.MsgsToHdfs(kafkaConsumerconsumer, topic);
 				System.out.println(rs);
+				kafkaConsumerconsumer.close();
 			}
 		}
 
 		/* target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); */
 		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */
-		kafkaConsumerconsumer.close();
 
 	}
 }
