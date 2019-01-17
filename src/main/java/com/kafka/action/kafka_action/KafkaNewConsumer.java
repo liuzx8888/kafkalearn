@@ -2,11 +2,9 @@ package com.kafka.action.kafka_action;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,13 +25,10 @@ import org.apache.kafka.clients.consumer.OffsetAndTimestamp;
 import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
-import org.mortbay.log.Log;
 
 import com.kafka.action.hdfs_action.FsFileManager;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
-
-import kafka.utils.Scheduler;
 
 public class KafkaNewConsumer implements Consumer {
 
@@ -247,60 +242,61 @@ public class KafkaNewConsumer implements Consumer {
 		List<String> msgs = null;
 
 		if (AUTOCOMMITOFFSET == 0) {
+			while (true) {
+				try {
+					consumer.subscribe(Arrays.asList(topic));
+					msgs = new LinkedList<String>();
+					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
+					if (records.toString().length() > 0) {
+						for (ConsumerRecord<String, String> record : records) {
+							System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+									record.topic(), record.partition(), record.offset(), record.key(), record.value());
+							msgs.add(record.value());
+							icount++;
+							icount1++;
+						}
 
-			try {
-				consumer.subscribe(Arrays.asList(topic));
-				msgs = new LinkedList<String>();
-				ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
-				if (records.toString().length() > 0) {
-					for (ConsumerRecord<String, String> record : records) {
-						System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
-								record.topic(), record.partition(), record.offset(), record.key(), record.value());
-						msgs.add(record.value());
-						icount++;
-						icount1++;
-					}
+						if (icount >= minCommitSize) {
 
-					if (icount >= minCommitSize) {
+							/*
+							 * inputStream = new BufferedInputStream(new
+							 * ByteArrayInputStream(msgs.toString().getBytes()));
+							 * System.out.println(inputStream.toString().length());
+							 * 
+							 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
+							 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
+							 * // TODO: handle exception return "写入HDFS失败"; }
+							 */
 
-						/*
-						 * inputStream = new BufferedInputStream(new
-						 * ByteArrayInputStream(msgs.toString().getBytes()));
-						 * System.out.println(inputStream.toString().length());
-						 * 
-						 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-						 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-						 * // TODO: handle exception return "写入HDFS失败"; }
-						 */
+							FsFileManager FsFile = new FsFileManager();
+							Path pathId = FsFile.getpath(topic, msgs.size());
 
-						FsFileManager FsFile = new FsFileManager();
-						Path pathId = FsFile.getpath(topic, msgs.size());
+							if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
 
-						if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
-							consumer.commitAsync();
-//							consumer.commitAsync(new OffsetCommitCallback() {
-//								@Override
-//								public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-//										Exception exception) {
-//									// TODO Auto-generated method stub
-//									if (exception == null) {
-//										LOG.info("提交成功!!!");
-//									} else {
-//										LOG.error("提交失败!!!");
-//									}
-//								}
-//							});
+								consumer.commitAsync(new OffsetCommitCallback() {
+									@Override
+									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+											Exception exception) {
+										// TODO Auto-generated method stub
+										if (exception == null) {
+											LOG.info("提交成功!!!");
+										} else {
+											LOG.error("提交失败!!!");
+										}
+									}
+								});
 
-							rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
-							icount = 0;
+								rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
+								icount = 0;
+							}
 						}
 					}
+				} catch (Exception e) {
+					// TODO: handle exception
+					LOG.error("消费消息发生异常！！", e);
+					rs = "写入HDFS失败！！";
+					break;
 				}
-			} catch (Exception e) {
-				// TODO: handle exception
-				LOG.error("消费消息发生异常！！", e);
-				rs = "写入HDFS失败！！";
-				// break;
 			}
 		}
 
@@ -323,8 +319,8 @@ public class KafkaNewConsumer implements Consumer {
 			// fs.createNewFile(path);
 			// }
 
-			outputStream = fs.append(path);
 			if (msgs.size() > 0) {
+				outputStream = fs.append(path);
 				outputStream.write(msgs.toString().getBytes("utf-8"));
 				outputStream.write("/n".getBytes("utf-8"));
 				rs = true;
@@ -335,10 +331,10 @@ public class KafkaNewConsumer implements Consumer {
 			e.printStackTrace();
 		}
 
-		finally {
+/*		finally {
 			fs.close();
 			outputStream.close();
-		}
+		}*/
 
 		return rs;
 

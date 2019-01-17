@@ -18,8 +18,8 @@ import scala.collection.Seq;
 
 public class TopicManager {
 	private static final String ZK_CONNECT = "hadoop1:2181,hadoop2:2181,hadoop3:2181,hadoop4:2181";
-	private static final int SESSION_TIMEOUT = 3000;
-	private static final int CONNECT_TIMEOUT = 3000;
+	private static final int SESSION_TIMEOUT = Integer.MAX_VALUE;
+	private static final int CONNECT_TIMEOUT = Integer.MAX_VALUE;
 	private static ZkUtils utils;
 
 	static {
@@ -114,20 +114,20 @@ public class TopicManager {
 
 	}
 
-	public static void main(String[] args) {
-		String Topic = "stock-quotation";
-		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
-
-		// TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
-		// TopicManager.getproperties(utils, Topic);
-		/* TopicManager.addpartition(utils,Topic, 9); */
-		/* TopicManager.assignreplicas(utils, Topic, 11, 4); */
-		List<String> allTopicList = TopicManager.getTopicList("OGG", "");
-		for (String topic : allTopicList) {
-			System.out.println(topic);
-		}
-
-		utils.close();
-
-	}
+//	public static void main(String[] args) {
+//		String Topic = "stock-quotation";
+//		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
+//
+//		// TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
+//		// TopicManager.getproperties(utils, Topic);
+//		/* TopicManager.addpartition(utils,Topic, 9); */
+//		/* TopicManager.assignreplicas(utils, Topic, 11, 4); */
+//		List<String> allTopicList = TopicManager.getTopicList("OGG", "");
+//		for (String topic : allTopicList) {
+//			System.out.println(topic);
+//		}
+//
+//		utils.close();
+//
+//	}
 }
