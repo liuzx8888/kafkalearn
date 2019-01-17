@@ -242,99 +242,87 @@ public class KafkaNewConsumer implements Consumer {
 		List<String> msgs = null;
 
 		if (AUTOCOMMITOFFSET == 0) {
-			while (true) {
-				try {
-					consumer.subscribe(Arrays.asList(topic));
-					msgs = new LinkedList<String>();
-					ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
-					if (records.toString().length() > 0) {
-						for (ConsumerRecord<String, String> record : records) {
-							System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
-									record.topic(), record.partition(), record.offset(), record.key(), record.value());
-							msgs.add(record.value());
-							icount++;
-							icount1++;
-						}
+			try {
+				consumer.subscribe(Arrays.asList(topic));
+				msgs = new LinkedList<String>();
+				ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
+				if (records.toString().length() > 0) {
+					for (ConsumerRecord<String, String> record : records) {
+						System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+								record.topic(), record.partition(), record.offset(), record.key(), record.value());
+						msgs.add(record.value());
 
-						if (icount >= minCommitSize) {
-
-							/*
-							 * inputStream = new BufferedInputStream(new
-							 * ByteArrayInputStream(msgs.toString().getBytes()));
-							 * System.out.println(inputStream.toString().length());
-							 * 
-							 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-							 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-							 * // TODO: handle exception return "写入HDFS失败"; }
-							 */
-
-							FsFileManager FsFile = new FsFileManager();
-							Path pathId = FsFile.getpath(topic, msgs.size());
-
-							if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
-
-								consumer.commitAsync(new OffsetCommitCallback() {
-									@Override
-									public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-											Exception exception) {
-										// TODO Auto-generated method stub
-										if (exception == null) {
-											LOG.info("提交成功!!!");
-										} else {
-											LOG.error("提交失败!!!");
-										}
-									}
-								});
-
-								rs = "写入Hdfs  [" + pathId.toString() + "]    成功！！！";
-								icount = 0;
-							}
-						}
+						icount++;
+						icount1++;
 					}
-				} catch (Exception e) {
-					// TODO: handle exception
-					LOG.error("消费消息发生异常！！", e);
-					rs = "写入HDFS失败！！";
-					break;
+
+					if (icount >= minCommitSize) {
+						/*
+						 * inputStream = new BufferedInputStream(new
+						 * ByteArrayInputStream(msgs.toString().getBytes()));
+						 * System.out.println(inputStream.toString().length());
+						 *
+						 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
+						 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
+						 * // TODO: handle exception return "写入HDFS失败"; }
+						 */
+						consumer.commitAsync(new OffsetCommitCallback() {
+							@Override
+							public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+									Exception exception) {
+								// TODO Auto-generated method stub
+								if (exception == null) {
+									LOG.info("提交成功!!!");
+								} else {
+									LOG.error("提交失败!!!");
+								}
+							}
+						});
+						
+						FsFileManager FsFile = new FsFileManager();
+						Path pathId = FsFile.getpath(topic, msgs.size());
+						writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET);
+
+						rs = "写入Hdfs [" + pathId.toString() + "] 成功！！！";
+						icount = 0;
+					}
 				}
+
+			} catch (Exception e) {
+				// TODO: handle exception
+				LOG.error("消费消息发生异常！！", e);
+				rs = "写入HDFS失败！！";
+				// break;
 			}
 		}
 
 		return rs;
+
 	}
 
-	public static Boolean writeToHdfs(Path path, List<String> msgs, int AUTOCOMMITOFFSET) throws IOException {
+	public static boolean writeToHdfs(Path path, List<String> msgs, int AUTOCOMMITOFFSET) throws Exception {
 		Configuration conf = null;
 
 		FSDataOutputStream outputStream = null;
-		Boolean rs = null;
-
-		conf = ConfigUtil.getConfiguration(HDFSPROP);
-		FileSystem fs = null;
-		fs = FileSystem.get(conf);
+		boolean rs = false;
 
 		try {
-
-			// if (!fs.exists(path)) {
-			// fs.createNewFile(path);
-			// }
-
 			if (msgs.size() > 0) {
+				conf = ConfigUtil.getConfiguration(HDFSPROP);
+				FileSystem fs = FileSystem.get(conf);
 				outputStream = fs.append(path);
 				outputStream.write(msgs.toString().getBytes("utf-8"));
 				outputStream.write("/n".getBytes("utf-8"));
+				fs.close();
+				outputStream.close();
 				rs = true;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			rs = false;
 			e.printStackTrace();
-		}
 
-/*		finally {
-			fs.close();
-			outputStream.close();
-		}*/
+		}
 
 		return rs;
 
