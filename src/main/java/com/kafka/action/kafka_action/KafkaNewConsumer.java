@@ -208,16 +208,16 @@ public class KafkaNewConsumer implements Consumer {
 
 	/* 获取消息 */
 	public static void ConsumerTopicMessage(KafkaConsumer<String, String> consumer, String topic) {
-		List<String> msgs = null;
+		List<ConsumerRecord<String, String>> msgs = null;
 
 		try {
-			msgs = new LinkedList<String>();
+			msgs = new LinkedList<ConsumerRecord<String, String>>();
 			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 
 			for (ConsumerRecord<String, String> record : records) {
 				System.out.printf("消费的消息: %n  partition = %d,offset = %d, key = %s , value = %s%n", record.partition(),
 						record.offset(), record.key(), record.value());
-				msgs.add(record.value());
+				msgs.add(record);
 			}
 			FsFileManager FsFile = new FsFileManager();
 			Path pathId = FsFile.getpath(topic, msgs.size());
@@ -236,57 +236,65 @@ public class KafkaNewConsumer implements Consumer {
 		InputStream inputStream = null;
 		String rs = null;
 
-		int minCommitSize = 10;// 至少需要处理10条再提交
+		int minCommitSize = 100;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
 		int icount1 = 0;// 消息计数器
 
 		if (AUTOCOMMITOFFSET == 0) {
-			List<String> msgs = null;
+			List<ConsumerRecord<String, String>> msgs = null;
 			consumer.subscribe(Arrays.asList(topic));
-			msgs = new LinkedList<String>();
+			msgs = new LinkedList<ConsumerRecord<String, String>>();
 			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 			try {
 				for (ConsumerRecord<String, String> record : records) {
-//					System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
-//							record.topic(), record.partition(), record.offset(), record.key(), record.value());
-//					System.out.println("offset:" +record.offset()+",value:"+record.value().split("\"ID\":")[1].split(",")[0]);
-					msgs.add(record.value());
-
-					icount++;
-					icount1++;
+					System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+							record.topic(), record.partition(), record.offset(), record.key(), record.value());
+					msgs.add(record);
 				}
+				FsFileManager FsFile = new FsFileManager();
+				Path pathId = FsFile.getpath(topic, msgs.size());
 
-				if (icount >= minCommitSize) {
-					FsFileManager FsFile = new FsFileManager();
-					Path pathId = FsFile.getpath(topic, msgs.size());
-					consumer.commitAsync(new OffsetCommitCallback() {//这段效果 应该是biao'ji哦
-						@Override
-						public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception exception) {
-							// TODO Auto-generated method stub
-							if (exception == null) {
-								LOG.info("提交成功!!!");
-								System.out.println("successs");
-							} else {
-								LOG.error("提交失败!!!");
-								System.out.println("error");
-							}
-						}
-					});
-					System.out.println("commit ok");
-					writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET);
+				if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
+					consumer.commitSync();
+					LOG.info("写入Hdfs [" + pathId.toString() + "] 成功！！！");
+					rs = "写入HDFS成功！！";
 					/*
-					 * inputStream = new BufferedInputStream(new
-					 * ByteArrayInputStream(msgs.toString().getBytes()));
-					 * System.out.println(inputStream.toString().length());
-					 *
-					 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-					 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-					 * // TODO: handle exception return "写入HDFS失败"; }
+					 * 提交 同步 跟 异步的 区别！！
 					 */
+					//
+					// consumer.commitAsync(new OffsetCommitCallback() {
+					// @Override
+					// public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+					// Exception exception) {
+					// // TOD stub
+					// if (exception == null) {
+					// LOG.info("提交成功!!!");
+					// System.out.println("successs");
+					// } else {
+					// LOG.error("提交失败!!!");
+					// System.out.println("error");
+					// }
+					// }
+					// });
+					// Thread.sleep(3000);
 
-					rs = "写入Hdfs [" + pathId.toString() + "] 成功！！！";
-					icount = 0;
+				} else {
+					LOG.info("写入Hdfs [" + pathId.toString() + "] 失败！！！");
 				}
+
+				// inputStream = new BufferedInputStream(new
+				// ByteArrayInputStream(msgs.toString().getBytes()));
+				// System.out.println(inputStream.toString().length());
+				//
+				// try {
+				// while (inputStream.read() != -1) {
+				// IOUtils.copyBytes(inputStream, outputStream, 4096000, false);
+				// return "写入HDFS成功";
+				// }
+				// } catch (Exception e) {
+				// // TODO: handle exception
+				// return "写入HDFS失败";
+				// }
 			}
 
 			catch (Exception e) {
@@ -301,26 +309,26 @@ public class KafkaNewConsumer implements Consumer {
 
 	}
 
-	public static Boolean writeToHdfs(Path path, List<String> msgs, int AUTOCOMMITOFFSET) throws Exception {
-		FSDataOutputStream outputStream = null;
+	public static Boolean writeToHdfs(Path path, List<ConsumerRecord<String, String>> msgs, int AUTOCOMMITOFFSET) throws Exception {
 		Boolean rs = false;
-		FileSystem fs = null;
 		try {
 			if (msgs.size() > 0) {
+				FSDataOutputStream outputStream = null;
+				FileSystem fs = null;
 				Configuration conf = ConfigUtil.getConfiguration(HDFSPROP);
 				fs = FileSystem.get(conf);
 				outputStream = fs.append(path);
+				
 				outputStream.write(msgs.toString().getBytes("utf-8"));
 				outputStream.write("/n".getBytes("utf-8"));
+				fs.close();
+				outputStream.close();
 				rs = true;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 
-		} finally {
-			fs.close();
-			outputStream.close();
 		}
 		return rs;
 
