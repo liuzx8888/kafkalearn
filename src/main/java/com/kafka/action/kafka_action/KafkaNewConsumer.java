@@ -236,7 +236,7 @@ public class KafkaNewConsumer implements Consumer {
 		InputStream inputStream = null;
 		String rs = null;
 
-		int minCommitSize = 10;// 至少需要处理10条再提交
+		int minCommitSize = 100;// 至少需要处理10条再提交
 		int icount = 0;// 消息计数器
 		int icount1 = 0;// 消息计数器
 
@@ -247,46 +247,52 @@ public class KafkaNewConsumer implements Consumer {
 			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 			try {
 				for (ConsumerRecord<String, String> record : records) {
-//					System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
-//							record.topic(), record.partition(), record.offset(), record.key(), record.value());
-//					System.out.println("offset:" +record.offset()+",value:"+record.value().split("\"ID\":")[1].split(",")[0]);
+					System.out.printf("订阅消息：  topic = %s, partition = %s, offset = %d,key = %s, value = %s\n",
+							record.topic(), record.partition(), record.offset(), record.key(), record.value());
 					msgs.add(record.value());
+				}
+				FsFileManager FsFile = new FsFileManager();
+				Path pathId = FsFile.getpath(topic, msgs.size());
 
-					icount++;
-					icount1++;
+				if (writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET)) {
+					consumer.commitSync();
+					consumer.commitAsync();
+					LOG.info("写入Hdfs [" + pathId.toString() + "] 成功！！！");
+					rs = "写入HDFS成功！！";
+					//
+					// consumer.commitAsync(new OffsetCommitCallback() {
+					// @Override
+					// public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+					// Exception exception) {
+					// // TOD stub
+					// if (exception == null) {
+					// LOG.info("提交成功!!!");
+					// System.out.println("successs");
+					// } else {
+					// LOG.error("提交失败!!!");
+					// System.out.println("error");
+					// }
+					// }
+					// });
+					// Thread.sleep(3000);
+
+				} else {
+					LOG.info("写入Hdfs [" + pathId.toString() + "] 失败！！！");
 				}
 
-				if (icount >= minCommitSize) {
-					FsFileManager FsFile = new FsFileManager();
-					Path pathId = FsFile.getpath(topic, msgs.size());
-					consumer.commitAsync(new OffsetCommitCallback() {//这段效果 应该是biao'ji哦
-						@Override
-						public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception exception) {
-							// TODO Auto-generated method stub
-							if (exception == null) {
-								LOG.info("提交成功!!!");
-								System.out.println("successs");
-							} else {
-								LOG.error("提交失败!!!");
-								System.out.println("error");
-							}
-						}
-					});
-					System.out.println("commit ok");
-					writeToHdfs(pathId, msgs, AUTOCOMMITOFFSET);
-					/*
-					 * inputStream = new BufferedInputStream(new
-					 * ByteArrayInputStream(msgs.toString().getBytes()));
-					 * System.out.println(inputStream.toString().length());
-					 *
-					 * try { while (inputStream.read() != -1) { IOUtils.copyBytes(inputStream,
-					 * outputStream, 4096000, false); return "写入HDFS成功"; } } catch (Exception e) {
-					 * // TODO: handle exception return "写入HDFS失败"; }
-					 */
-
-					rs = "写入Hdfs [" + pathId.toString() + "] 成功！！！";
-					icount = 0;
-				}
+				// inputStream = new BufferedInputStream(new
+				// ByteArrayInputStream(msgs.toString().getBytes()));
+				// System.out.println(inputStream.toString().length());
+				//
+				// try {
+				// while (inputStream.read() != -1) {
+				// IOUtils.copyBytes(inputStream, outputStream, 4096000, false);
+				// return "写入HDFS成功";
+				// }
+				// } catch (Exception e) {
+				// // TODO: handle exception
+				// return "写入HDFS失败";
+				// }
 			}
 
 			catch (Exception e) {
@@ -302,25 +308,24 @@ public class KafkaNewConsumer implements Consumer {
 	}
 
 	public static Boolean writeToHdfs(Path path, List<String> msgs, int AUTOCOMMITOFFSET) throws Exception {
-		FSDataOutputStream outputStream = null;
 		Boolean rs = false;
-		FileSystem fs = null;
 		try {
 			if (msgs.size() > 0) {
+				FSDataOutputStream outputStream = null;
+				FileSystem fs = null;
 				Configuration conf = ConfigUtil.getConfiguration(HDFSPROP);
 				fs = FileSystem.get(conf);
 				outputStream = fs.append(path);
 				outputStream.write(msgs.toString().getBytes("utf-8"));
 				outputStream.write("/n".getBytes("utf-8"));
+				fs.close();
+				outputStream.close();
 				rs = true;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 
-		} finally {
-			fs.close();
-			outputStream.close();
 		}
 		return rs;
 
