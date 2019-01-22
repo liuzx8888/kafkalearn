@@ -10,7 +10,7 @@ public class User {
 
 	@JSONField(name = "ID", serialize = false)
 	private int id;
-	@JSONField(name = "FULL NAME", ordinal = 1)
+	@JSONField(name = "FULL NAME", ordinal = 1,alternateNames= {"name","age","birthofday"})
 	private String name;
 
 	@JSONField(name = "AGE", ordinal = 2)

@@ -38,8 +38,8 @@ public class FastJsonTest {
 		String usersjson1 = JSON.toJSONString(users, SerializerFeature.BeanToArray);
 
 		System.out.println(userjson);
-		System.out.println(usersjson);
-		System.out.println(usersjson1);
+//		System.out.println(usersjson);
+//		System.out.println(usersjson1);
 	}
 
 }
