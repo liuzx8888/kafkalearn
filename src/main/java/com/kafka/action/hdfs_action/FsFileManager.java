@@ -59,13 +59,14 @@ public class FsFileManager {
 		String path = "/OGG/" + topic.replace("OGG_", "");
 		String sub_topic = topic.replace("OGG_", "");
 		String path_new = "/" + "OGG" + "/" + sub_topic;
+		String FileFormat=  CONF.get("fileDocFormat");
 
-		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1.pquet"))) {
-			FS.createNewFile(new Path(path_new + "/" + sub_topic + "_1.pquet"));
+		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1."+FileFormat))) {
+			FS.createNewFile(new Path(path_new + "/" + sub_topic + "_1."+FileFormat));
 		}
 
 		int id = File_Id(new Path(path), size);
-		String path_Id = path_new + "/" + sub_topic + "_" + String.valueOf(id) + ".pquet";
+		String path_Id = path_new + "/" + sub_topic + "_" + String.valueOf(id) + "."+FileFormat;
 		Path pathId = new Path(path_Id);
 		return pathId;
 

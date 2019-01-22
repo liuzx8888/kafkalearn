@@ -8,7 +8,12 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.common.security.JaasUtils;
+
+import com.kafka.action.util.ConfigUtil;
+import com.kafka.action.util.SystemEnum;
+
 import kafka.admin.AdminUtils;
 import kafka.admin.BrokerMetadata;
 import kafka.server.ConfigType;
@@ -17,12 +22,16 @@ import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 public class TopicManager {
-	private static final String ZK_CONNECT = "hadoop1:2181,hadoop2:2181,hadoop3:2181,hadoop4:2181";
-	private static final int SESSION_TIMEOUT = Integer.MAX_VALUE;
-	private static final int CONNECT_TIMEOUT = Integer.MAX_VALUE;
+	private static  String ZK_CONNECT ;
+	private static  int SESSION_TIMEOUT ;
+	private static  int CONNECT_TIMEOUT ;
 	private static ZkUtils utils;
-
+	private static Properties prop =null;
 	static {
+		Properties prop = ConfigUtil.getProperties(SystemEnum.ZOOKEEPER);
+		ZK_CONNECT= prop.getProperty("ZK_CONNECT");
+		SESSION_TIMEOUT= Integer.parseInt(prop.getProperty("SESSION_TIMEOUT"));
+		CONNECT_TIMEOUT= Integer.parseInt(prop.getProperty("CONNECT_TIMEOUT"));		
 		utils = null;
 		utils = ZkUtils.apply(ZK_CONNECT, SESSION_TIMEOUT, CONNECT_TIMEOUT, JaasUtils.isZkSecurityEnabled());
 	}

@@ -1,7 +1,7 @@
 package com.kafka.action.util;
 
 public enum SystemEnum {
-	KAFKA("Kafka_Config.properties"), HDFS("Hdfs_Config.properties");
+	KAFKA("Kafka_Config.properties"), HDFS("Hdfs_Config.properties"), ZOOKEEPER("Zookeeper_Config.properties");
 
 	private String sysname;
 

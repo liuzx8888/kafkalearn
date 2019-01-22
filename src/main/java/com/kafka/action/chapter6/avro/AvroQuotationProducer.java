@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 public class AvroQuotationProducer {
 	private static final Logger LOG = Logger.getLogger(AvroQuotationProducer.class);
 	/* 设置消息生产总数 */
-	private static final int MSG_SIZE = 10;
+	private static final int MSG_SIZE = 100;
 	/* 主题名称 */
 	private static final String TOPIC = "stock-quotation-avro";
 	/* kafka集群 */

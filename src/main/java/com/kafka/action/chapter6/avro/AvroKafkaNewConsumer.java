@@ -26,10 +26,8 @@ public class AvroKafkaNewConsumer {
 	private static final String TOPIC = "stock-quotation-avro";
 	private static final String GROUPID = "test";
 	private static final String CLIENTID = "test";
-	/*
-	 * private static final String BROKER_LIST =
-	 * "hadoop1:9092,hadoop2:9092,hadoop3:9092,hadoop4:9092";
-	 */
+
+	
 	private static final String BROKER_LIST = "192.168.1.70:9092,192.168.1.71:9092,192.168.1.72:9092,192.168.1.73:9092";
 	private static final int AUTOCOMMITOFFSET = 0;
 
