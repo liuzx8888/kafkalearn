@@ -3,26 +3,26 @@ package com.kafka.action.kafka_action;
 import static org.junit.Assert.assertEquals;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.kafka.common.config.types.Password;
+import static org.junit.Assert.*;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class FastJsonTest {
 
 	// String json="{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-21
 	// 14:05:18.446967\",\"current_ts\":\"2019-01-21T22:26:10.481001\",\"pos\":\"00000000400000050285\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":211170,\"BIRTHDATE\":\"2019-01-22
 	// 00:58:17.903000000\",\"AGE\":99,\"NAME\":\"kkrrr\"}" ;
-
+	@Test
 	public void ToJsonString() {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -43,9 +43,9 @@ public class FastJsonTest {
 		String usersjson1 = JSON.toJSONString(users, SerializerFeature.BeanToArray);
 
 		User user4 = JSON.parseObject(userjson, User.class);
-		System.out.println(userjson);
+		System.out.println("userjson:"+userjson);
 
-		// System.out.println(usersjson);
+		System.out.println(usersjson);
 		// System.out.println(usersjson1);
 		// System.out.println(user4.toString());
 
@@ -58,20 +58,6 @@ public class FastJsonTest {
 		String jsonVal2 = "{\"id\":2341,\"person\":\"Bob\"}";
 
 		Model obj0 = JSON.parseObject(jsonVal0, Model.class);
-		assertEquals(5001, obj0.id);
-		assertEquals("Jobs", obj0.name);
-		assertEquals("Jobs", obj0.name);
-		System.out.printf("obj0:%s", obj0);
-		//
-		// Model obj1 = JSON.parseObject(jsonVal1, Model.class);
-		// assertEquals(5382, obj1.id);
-		// assertEquals("Mary", obj1.name);
-		// System.out.println(obj1);
-		//
-		// Model obj2 = JSON.parseObject(jsonVal2, Model.class);
-		// assertEquals(2341, obj2.id);
-		// assertEquals("Bob", obj2.name);
-		// System.out.println(obj2);
 
 		String id = (String) JSONPath.eval(userjson, "$.id");
 		System.out.printf("id=%s", id);
@@ -103,15 +89,24 @@ public class FastJsonTest {
 
 		System.out.println("\n-----------------------读取集合元素中的值------------------------------");
 		System.out.println("JSONPath.eval(entities, \"$.name\") = " + JSONPath.eval(entities, "$.name"));
-		System.out.println("JSONPath.contains(entities, \"$.id\") = " + JSONPath.contains(entities, "$.id"));
-		System.out.println("JSONPath.containsValue(entities, \"$.name\", \"name1\") = "
-				+ JSONPath.containsValue(entities, "$.name", "name1"));
 		System.out.println("JSONPath.containsValue(entities, \"$.value\", entity.getValue()) = "
 				+ JSONPath.containsValue(entities, "$.value", entity1.getValue()));
 
 		System.out.println("JSONPath.size(entities, \"$\")  = " + JSONPath.size(entities, "$"));
-		List<Entity> result = (List<Entity>) JSONPath.eval(entities, "[1,3]");
-		System.out.println("[1,2] = " + result.iterator().next().getName());
+		String string_index = "[0:" + String.valueOf(entities.size()) + "]";
+		List<Entity> result = (List<Entity>) JSONPath.eval(entities, string_index);
+		System.out.println(string_index + ":      " + result.get(1).getId());
+
+		System.out.println("JSONPath.eval(entities, \"[id in (1,2)]\") = " + JSONPath.eval(entities, "[id in (1,2)]"));
+
+		JSONPath.set(entity1, "name", "eeexxx");
+		System.out.println(JSONPath.eval(entity1, "name"));
+
+		JSONPath.set(entity1, "value", new int[3]);
+		JSONPath.arrayAdd(entity1, "value", 1,2,3);
+
+		System.out.println(JSONPath.eval(entity1, "$.value").toString());
+
 
 	}
 

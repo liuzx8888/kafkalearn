@@ -13,7 +13,7 @@ public class UserSerialize implements ObjectSerializer {
 			throws IOException {
 		// TODO Auto-generated method stub
 
-		String memo=  "["+(String) fieldName+"  详细说明:   "+object +"]";
+		String memo = String.valueOf(object.hashCode());
 		serializer.write(memo);
 	}
 
