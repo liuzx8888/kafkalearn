@@ -8,24 +8,24 @@ import com.alibaba.fastjson.annotation.JSONField;
 
 public class User {
 
-	@JSONField(name = "ID", serialize = false)
-	private int id;
-	@JSONField(name = "FULL NAME", ordinal = 1,alternateNames= {"name","age","birthofday"})
+	@JSONField(name = "name")
 	private String name;
+	@JSONField(name = "id")
+	private int id;
 
-	@JSONField(name = "AGE", ordinal = 2)
+	@JSONField(name = "age", ordinal = 2)
 	private int age;
 
 	@JSONField(name = "PASS WORD", ordinal = 3, serialize = false, deserialize = false)
 	private Password password;
 
-	@JSONField(name = "BIRTHDAY", format = "yyyy/mm/dd")
-	private Date birthofday;
+	@JSONField(name = "BIRTHDAY", format = "yyyy/mm/dd", ordinal = 4)
+	private String birthofday;
 
-	@JSONField(name = "MEMO", serializeUsing = UserSerialize.class)
+	@JSONField(name = "MEMO", serializeUsing = UserSerialize.class, ordinal = 5,jsonDirect =true)
 	private String memo;
 
-	public User(int id, String name, int age, Password password, Date birthofday, String memo) {
+	public User(int id, String name, int age, Password password, String birthofday, String memo) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -42,8 +42,8 @@ public class User {
 	public void setMemo(String memo) {
 		this.memo = memo;
 	}
-
-	public User(int id, String name, int age, Password password, Date birthofday) {
+//
+	public User(int id, String name, int age, Password password, String birthofday) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -52,11 +52,11 @@ public class User {
 		this.birthofday = birthofday;
 	}
 
-	public Date getBirthofday() {
+	public String getBirthofday() {
 		return birthofday;
 	}
 
-	public void setBirthofday(Date birthofday) {
+	public void setBirthofday(String birthofday) {
 		this.birthofday = birthofday;
 	}
 
