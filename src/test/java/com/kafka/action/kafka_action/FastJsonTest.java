@@ -2,11 +2,22 @@ package com.kafka.action.kafka_action;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest;
 import org.apache.kafka.common.config.types.Password;
 import static org.junit.Assert.*;
 
@@ -15,6 +26,8 @@ import org.junit.Test;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONPath;
+import com.alibaba.fastjson.JSONWriter;
+import com.alibaba.fastjson.parser.deserializer.ExtraProcessor;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class FastJsonTest {
@@ -41,12 +54,21 @@ public class FastJsonTest {
 		String userjson = JSON.toJSONString(user1);
 		String usersjson = JSON.toJSONString(group);
 		String usersjson1 = JSON.toJSONString(users, SerializerFeature.BeanToArray);
+		
+        User[] users2 = new User[3];  
+        users2[0] = user2;  
+        users2[1] = user3;  
+        users2[2] = user3;  
+        String usersjson2 = JSON.toJSONString(users2);
+		System.out.println("usersjson2"+usersjson2);      
+		List<User> users1 = JSON.parseArray(usersjson2, User.class);
+		System.out.println("users1"+users1);
 
 		User user4 = JSON.parseObject(userjson, User.class);
-		System.out.println("userjson:"+userjson);
+		System.out.println("userjson:" + userjson);
 
-		System.out.println(usersjson);
-		// System.out.println(usersjson1);
+		System.out.println("usersjson:"+usersjson);
+		System.out.println("usersjson1:"+usersjson1);
 		// System.out.println(user4.toString());
 
 		String jsonuser = "{\"id\":\"5001\",\"name\":\"Jobs\",\"age\":\"18\",\"BIRTHDAY\":\"2019-01-23\",\"MEMO\":\"444555\"}";
@@ -65,7 +87,7 @@ public class FastJsonTest {
 
 	}
 
-	@Test
+	//@Test
 	public void test_entity() throws Exception {
 		Entity entity1 = new Entity(1, "name1", 111);
 		Entity entity2 = new Entity(2, "name2", 222);
@@ -98,16 +120,66 @@ public class FastJsonTest {
 		System.out.println(string_index + ":      " + result.get(1).getId());
 
 		System.out.println("JSONPath.eval(entities, \"[id in (1,2)]\") = " + JSONPath.eval(entities, "[id in (1,2)]"));
+		System.out.println("JSONPath.eval(entities, \"[id = 1]\") = " + JSONPath.eval(entities, "[id =1]"));
 
 		JSONPath.set(entity1, "name", "eeexxx");
 		System.out.println(JSONPath.eval(entity1, "name"));
+		String[] strarr = new String[3];
+		JSONPath.set(entity1, "value", new ArrayList<String>());
+		JSONPath.arrayAdd(entity1, "value", "1,2,3");
+		System.out.println(JSONPath.eval(entity1, "$.value"));
 
-		JSONPath.set(entity1, "value", new int[3]);
-		JSONPath.arrayAdd(entity1, "value", 1,2,3);
+		Map root = Collections.singletonMap("company", //
+				Collections.singletonMap("departs", //
+						Arrays.asList( //
+								Collections.singletonMap("id", 1001), //
+								Collections.singletonMap("id", 1002), //
+								Collections.singletonMap("id", 1003) //
+						) //
+				));
 
-		System.out.println(JSONPath.eval(entity1, "$.value").toString());
+		List<Object> ids = (List<Object>) JSONPath.eval(root, "$..id");
+		System.out.println(ids);
 
+		System.out.println("\n-----------------------WriteJsonString------------------------------");
+		File file = new File("D:\\json.txt");
+		File file1 = new File("D:\\json1.txt");
+		Entity entity4 = new Entity();
+		entity4.setId(55);
+		OutputStream os = new FileOutputStream(file);
+		// JSON.writeJSONString(os,entity4);
+		JSON.writeJSONString(os, Charset.forName("utf-8"), entity4);
+		os.close();
 
+		Writer writer = new FileWriter(file1);
+		JSON.writeJSONString(writer, entity4);
+		writer.close();
+
+		System.out.println("\n-----------------------Stream------------------------------");
+		JSONWriter writer1 = new JSONWriter(new FileWriter("D:\\json2.txt"));
+		writer1.startArray();
+		for (int i = 0; i < 1000 * 1000; ++i) {
+			writer1.writeValue(new VO());
+		}
+		writer1.endArray();
+		writer1.close();
+
+		System.out.println("\n-----------------------ExtraProcessor------------------------------");
+		ExtraProcessor processor = new ExtraProcessor() {
+			public void processExtra(Object object, String key, Object value) {
+				VO vo = (VO) object;
+				System.out.println("key:" + key + "value:" + value);
+				vo.getAttributes().put(key, value);
+			}
+		};
+
+		VO vo = JSON.parseObject("{\"id\":123,\"name\":\"abc\"}", VO.class, processor);
+		System.out.println(vo.getId());
+		System.out.println(vo.getAttributes().get("name"));
+
+		VO vo1 = JSON.parseObject("{\"id\":123,\"value\":\"123456\"}", VO.class, processor);
+		System.out.println(vo1.getId());
+		System.out.println(vo1.getAttributes().get("value"));
 	}
 
 	public static class Entity {

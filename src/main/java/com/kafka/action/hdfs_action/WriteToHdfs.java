@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
+import com.alibaba.fastjson.JSON;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
 
@@ -23,9 +24,6 @@ public class WriteToHdfs {
 				Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
 				fs = FileSystem.get(conf);
 				outputStream = fs.append(path);
-				
-				
-				
 
 				outputStream.write(msgs.toString().getBytes("utf-8"));
 				fs.close();
