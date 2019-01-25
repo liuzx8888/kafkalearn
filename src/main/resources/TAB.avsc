@@ -1,0 +1,12 @@
+{"namespace": "com.kafka.action.chapter6.avro",
+    "type": "record",
+    "name": "TAB",
+    "fields": [
+                {"name": "LASTUPDATEDTTM","type":  "string"},
+                {"name": "ISDELETED","type":  "int"},
+                {"name": "ID","type":  "int"},
+                {"name": "BIRTHDATE","type":  "string"},
+                {"name": "AGE","type":  "int"},
+                {"name": "NAME","type":  "string"}
+              ]
+}
