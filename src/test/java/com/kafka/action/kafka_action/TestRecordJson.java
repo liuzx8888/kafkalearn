@@ -1,10 +1,13 @@
 package com.kafka.action.kafka_action;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -13,39 +16,45 @@ import java.util.regex.Pattern;
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.file.SeekableFileInput;
+import org.apache.avro.file.SyncableFileOutputStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.util.internal.JacksonUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
+import com.kafka.action.hdfs_action.AvroToHdfs;
+import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.ConvertDateType;
+import com.kafka.action.util.SystemEnum;
 
 public class TestRecordJson {
 
 	public static void main(String[] args) throws IOException {
 
-//		String str = "{\r\n" + "    \"table\": \"DBO.TAB\", \r\n" + "    \"op_type\": \"I\", \r\n"
-//				+ "    \"op_ts\": \"2019-01-21 14:05:18.446967\", \r\n"
-//				+ "    \"current_ts\": \"2019-01-21T22:26:10.481001\", \r\n"
-//				+ "    \"pos\": \"00000000400000050285\", \r\n" + "    \"primary_keys\": [\r\n" + "        \"ID\"\r\n"
-//				+ "    ], \r\n" + "    \"after\": {\r\n" + "        \"ID\": 211170, \r\n"
-//				+ "        \"BIRTHDATE\": \"2019-01-22 00:58:17.903000000\", \r\n" + "        \"AGE\": 99, \r\n"
-//				+ "        \"NAME\": \"kkrrr\"\r\n" + "    }\r\n" + "}\r\n";
-		String str = "{\r\n" + "    \"table\": \"DBO.TAB\", \r\n" + "    \"op_type\": \"U\", \r\n"
-				+ "    \"op_ts\": \"2019-01-21 14:05:18.446967\", \r\n"
-				+ "    \"current_ts\": \"2019-01-21T22:26:10.481001\", \r\n"
-				+ "    \"pos\": \"00000000400000050285\", \r\n" + "    \"primary_keys\": [\r\n" + "        \"ID\"\r\n"
-				+ "    ], \r\n" + "    \"before\": {\r\n" + "        \"ID\": 211170, \r\n"
-				+ "        \"BIRTHDATE\": \"2019-01-22 00:58:17.903000000\", \r\n" + "        \"AGE\": 99, \r\n"
-				+ "        \"NAME\": \"kkrrr\"\r\n" + "    }, \r\n" + "    \"after\": {\r\n"
-				+ "        \"ID\": 211171, \r\n" + "        \"BIRTHDATE\": \"2019-01-22 00:58:17.903000000\", \r\n"
-				+ "        \"AGE\": 88, \r\n" + "        \"NAME\": \"kkrrr\"\r\n" + "    }\r\n" + "}";
+		// String str = "{\r\n" + " \"table\": \"DBO.TAB\", \r\n" + " \"op_type\":
+		// \"I\", \r\n"
+		// + " \"op_ts\": \"2019-01-21 14:05:18.446967\", \r\n"
+		// + " \"current_ts\": \"2019-01-21T22:26:10.481001\", \r\n"
+		// + " \"pos\": \"00000000400000050285\", \r\n" + " \"primary_keys\": [\r\n" + "
+		// \"ID\"\r\n"
+		// + " ], \r\n" + " \"after\": {\r\n" + " \"ID\": 211170, \r\n"
+		// + " \"BIRTHDATE\": \"2019-01-22 00:58:17.903000000\", \r\n" + " \"AGE\": 99,
+		// \r\n"
+		// + " \"NAME\": \"kkrrr\"\r\n" + " }\r\n" + "}\r\n";
+		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.532001\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.390000000\",\"AGE\":99,\"NAME\":\"kkrrr\"}}\r\n"
+				+ "";
 		System.out.println(str);
 		Object json = JSONArray.parse(str);
 		String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
@@ -121,8 +130,7 @@ public class TestRecordJson {
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
 
-		File avro = new File("D:\\Test.Avro");
-		writer.create(schema, avro);
+
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
 				table.put(entry.getKey(), entry.getValue());
@@ -134,9 +142,31 @@ public class TestRecordJson {
 				table.put(entry.getKey(), entry.getValue());
 			}
 		}
+
+		FileSystem fs = null;
+		Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
+		fs = FileSystem.get(conf);
+		Path path = new Path("/OGG/TAB/TAB_1.avro");
+		if (!fs.exists(path)) {
+			fs.createNewFile(path);
+		}
+		FSDataOutputStream outputStream = fs.append(path);		
 		
+
+		File avro = new File("D:\\Test.Avro");
+		if (!avro.exists()) {
+			writer.create(schema, avro);
+			writer.close();
+			writer.create(schema, outputStream);
+
+		} else {
+			//writer.appendTo(avro);
+			writer.appendTo(new SeekableFileInput(avro), outputStream);
+		}		
 		writer.append(table);
 		writer.close();
+
+
 	}
 
 }

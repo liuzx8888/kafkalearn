@@ -26,18 +26,17 @@ public class WriteToHdfs {
 		Boolean rs = false;
 		try {
 			if (msgs.size() > 0) {
-				FSDataOutputStream outputStream = null;
+
 				FileSystem fs = null;
 				Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
 				fs = FileSystem.get(conf);
-				outputStream = fs.append(path);
 				if (fileDocFormat.equals("avro")) {
-					 for(ConsumerRecord<String, String> msg :msgs) {
-						 AvroToHdfs.avroSchema(path,msg ,outputStream);
-					 }
+					for (ConsumerRecord<String, String> msg : msgs) {
+						AvroToHdfs.avroSchema(path, msg, fs);
+					}
 				}
+				
 				fs.close();
-				outputStream.close();
 				rs = true;
 			}
 		} catch (IOException e) {

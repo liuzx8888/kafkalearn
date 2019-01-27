@@ -1,8 +1,12 @@
 package com.kafka.action.hdfs_action;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -10,11 +14,15 @@ import java.util.regex.Pattern;
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.file.SeekableByteArrayInput;
+import org.apache.avro.file.SeekableFileInput;
+import org.apache.avro.file.SeekableInput;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
@@ -22,11 +30,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
+import com.google.common.io.ByteStreams;
 import com.kafka.action.util.ConvertDateType;
 
 public class AvroToHdfs {
 
-	public static void avroSchema(Path path,ConsumerRecord<String, String> msg,FSDataOutputStream outputStream) throws IOException {
+	public static void avroSchema(Path path, ConsumerRecord<String, String> msg, FileSystem fs) throws IOException {
 
 		String msg_value = msg.value();
 		Object json = JSONArray.parse(msg_value);
@@ -35,7 +44,7 @@ public class AvroToHdfs {
 		Object primary_keys = (Object) JSONPath.eval(json, "$.primary_keys");
 		String op_type = (String) JSONPath.eval(json, "$.op_type");
 		Object before = (Object) JSONPath.eval(json, "$.before");
-		Object after = (Object) JSONPath.eval(json, "$.after");	
+		Object after = (Object) JSONPath.eval(json, "$.after");
 		Map<String, Object> mapafter = new HashMap<String, Object>();
 		Map<String, Object> mapbefore = new HashMap<String, Object>();
 		if (after != null && after != "") {
@@ -72,7 +81,7 @@ public class AvroToHdfs {
 
 			if (!flag) {
 				mapbefore.put("ISDELETED", 1);
-				
+
 			}
 
 		}
@@ -80,7 +89,6 @@ public class AvroToHdfs {
 		if (op_type.equals("D")) {
 			mapafter.put("ISDELETED", 1);
 		}
-
 
 		StringBuilder tableschema = new StringBuilder();
 		tableschema = tableschema.append("{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n"
@@ -101,7 +109,13 @@ public class AvroToHdfs {
 
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
-		writer.create(schema, outputStream);
+
+		/**
+		 * Hadoop 写入信息
+		 */
+		FSDataOutputStream outputStream = fs.append(path);		
+	
+		File avro = new File("D:\\Test.Avro");
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
 				table.put(entry.getKey(), entry.getValue());
@@ -113,8 +127,10 @@ public class AvroToHdfs {
 				table.put(entry.getKey(), entry.getValue());
 			}
 		}
+		writer.appendTo(new SeekableFileInput(avro), outputStream);
 		writer.append(table);
-		writer.close();	
+		outputStream.close();
+		//writer.close();
 	}
 
 }
