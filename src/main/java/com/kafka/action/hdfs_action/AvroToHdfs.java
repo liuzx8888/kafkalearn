@@ -1,12 +1,8 @@
 package com.kafka.action.hdfs_action;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -14,13 +10,11 @@ import java.util.regex.Pattern;
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.file.SeekableByteArrayInput;
-import org.apache.avro.file.SeekableFileInput;
-import org.apache.avro.file.SeekableInput;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.mapred.FsInput;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -30,12 +24,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
-import com.google.common.io.ByteStreams;
 import com.kafka.action.util.ConvertDateType;
 
 public class AvroToHdfs {
 
-	public static void avroSchema(Path path, ConsumerRecord<String, String> msg, FileSystem fs) throws IOException {
+	public static void avroSchema(Path path, ConsumerRecord<String, String> msg, FileSystem fs, int init_createFile)
+			throws IOException {
 
 		String msg_value = msg.value();
 		Object json = JSONArray.parse(msg_value);
@@ -81,7 +75,6 @@ public class AvroToHdfs {
 
 			if (!flag) {
 				mapbefore.put("ISDELETED", 1);
-
 			}
 
 		}
@@ -107,15 +100,10 @@ public class AvroToHdfs {
 		Schema schema = new Schema.Parser().parse(tableschema.toString());
 		GenericRecord table = new GenericData.Record(schema);
 
-		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
-
 		/**
 		 * Hadoop 写入信息
 		 */
-		FSDataOutputStream outputStream = fs.append(path);		
-	
-		File avro = new File("D:\\Test.Avro");
+
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
 				table.put(entry.getKey(), entry.getValue());
@@ -127,10 +115,22 @@ public class AvroToHdfs {
 				table.put(entry.getKey(), entry.getValue());
 			}
 		}
-		writer.appendTo(new SeekableFileInput(avro), outputStream);
-		writer.append(table);
+
+		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
+		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
+		DataFileWriter<GenericRecord> dataFileWriter = null;
+		FSDataOutputStream outputStream = fs.append(path);
+
+		if (init_createFile == 0) {
+			dataFileWriter = writer.create(schema, outputStream);
+			dataFileWriter.append(table);
+		} else {
+			dataFileWriter = writer.appendTo(new FsInput(path, fs.getConf()), outputStream);
+			dataFileWriter.append(table);
+		}
+		writer.close();
+		dataFileWriter.close();
 		outputStream.close();
-		//writer.close();
 	}
 
 }

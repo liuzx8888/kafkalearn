@@ -2,7 +2,6 @@ package com.kafka.action.hdfs_action;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -12,16 +11,16 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
-import org.mortbay.log.Log;
 
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
 
 public class FsFileManager {
 
-	public static final Logger LOG = Logger.getLogger(FsSystem.class);
-	public static FileSystem FS = null;
-	public static Configuration CONF = null;
+	private static final Logger LOG = Logger.getLogger(FsSystem.class);
+	private static FileSystem FS = null;
+	private static Configuration CONF = null;
+	public  static int init_createFile = 1;
 
 	static {
 
@@ -59,16 +58,17 @@ public class FsFileManager {
 		String path = "/OGG/" + topic.replace("OGG_", "");
 		String sub_topic = topic.replace("OGG_", "");
 		String path_new = "/" + "OGG" + "/" + sub_topic;
-		String FileFormat=  CONF.get("fileDocFormat");
+		String FileFormat = CONF.get("fileDocFormat");
 
-		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1."+FileFormat))) {
-			FS.createNewFile(new Path(path_new + "/" + sub_topic + "_1."+FileFormat));
+		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1." + FileFormat))) {
+			init_createFile = 0;
+			FS.createNewFile(new Path(path_new + "/" + sub_topic + "_1." + FileFormat));
 		}
 
 		int id = File_Id(new Path(path), size);
-		String path_Id = path_new + "/" + sub_topic + "_" + String.valueOf(id) + "."+FileFormat;
+		String path_Id = path_new + "/" + sub_topic + "_" + String.valueOf(id) + "." + FileFormat;
 		Path pathId = new Path(path_Id);
 		return pathId;
-
 	}
+
 }

@@ -53,7 +53,9 @@ public class HdfsReadAvro {
 //		readFromAvro(is);
 		HdfsReadAvro avro = new HdfsReadAvro();
 		avro.deserializeAvroFromFile("D:\\TAB_1.avro");
-		avro.deserializeAvroFromFile("D:\\Test.Avro");
+		//avro.deserializeAvroFromFile("D:\\Test.Avro");
+		//avro.deserializeAvroFromFile("D:\\sample.avro");
+
 	}
 	
 }

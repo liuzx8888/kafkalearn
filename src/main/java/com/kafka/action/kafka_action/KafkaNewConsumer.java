@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -222,7 +219,8 @@ public class KafkaNewConsumer implements Consumer {
 			}
 			FsFileManager FsFile = new FsFileManager();
 			Path pathId = FsFile.getpath(topic, msgs.size());
-			WriteToHdfs.writeData(pathId, msgs);
+			int initavro = FsFile.init_createFile;
+			WriteToHdfs.writeData(pathId, msgs, initavro);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -233,10 +231,8 @@ public class KafkaNewConsumer implements Consumer {
 
 	@SuppressWarnings("unused")
 	public String MsgsToHdfs(KafkaConsumer<String, String> consumer, String topic) throws IOException {
-
 		InputStream inputStream = null;
 		String rs = null;
-
 		if (AUTOCOMMITOFFSET == 0) {
 			List<ConsumerRecord<String, String>> msgs = null;
 			consumer.subscribe(Arrays.asList(topic));
@@ -250,8 +246,9 @@ public class KafkaNewConsumer implements Consumer {
 				}
 				FsFileManager FsFile = new FsFileManager();
 				Path pathId = FsFile.getpath(topic, msgs.size());
+				int initavro = FsFile.init_createFile;
 
-				if (WriteToHdfs.writeData(pathId, msgs)) {
+				if (WriteToHdfs.writeData(pathId, msgs, initavro)) {
 					consumer.commitSync();
 
 					LOG.info("写入Hdfs [" + pathId.toString() + "] 成功！！！");

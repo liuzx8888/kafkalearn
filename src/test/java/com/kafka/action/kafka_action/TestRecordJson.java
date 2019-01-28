@@ -1,29 +1,21 @@
 package com.kafka.action.kafka_action;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.file.SeekableFileInput;
-import org.apache.avro.file.SyncableFileOutputStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
-import org.apache.avro.util.internal.JacksonUtils;
+import org.apache.avro.mapred.FsInput;
+import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -34,7 +26,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
-import com.kafka.action.hdfs_action.AvroToHdfs;
+import com.kafka.action.kafka_action.DFWAppendTest.Sample;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.ConvertDateType;
 import com.kafka.action.util.SystemEnum;
@@ -53,7 +45,7 @@ public class TestRecordJson {
 		// + " \"BIRTHDATE\": \"2019-01-22 00:58:17.903000000\", \r\n" + " \"AGE\": 99,
 		// \r\n"
 		// + " \"NAME\": \"kkrrr\"\r\n" + " }\r\n" + "}\r\n";
-		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.532001\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.390000000\",\"AGE\":99,\"NAME\":\"kkrrr\"}}\r\n"
+		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.532001\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.390000000\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n"
 				+ "";
 		System.out.println(str);
 		Object json = JSONArray.parse(str);
@@ -127,9 +119,7 @@ public class TestRecordJson {
 		Schema schema = new Schema.Parser().parse(tableschema.toString());
 		GenericRecord table = new GenericData.Record(schema);
 
-		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
-
+	
 
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
@@ -150,22 +140,25 @@ public class TestRecordJson {
 		if (!fs.exists(path)) {
 			fs.createNewFile(path);
 		}
-		FSDataOutputStream outputStream = fs.append(path);		
+		FSDataOutputStream outputStream = fs.append(path);
+
+		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
+		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());		
+
+	
+	
+		DataFileWriter<GenericRecord> dataFileWriter = null;
+//		dataFileWriter = writer.create(schema, outputStream);
+//		dataFileWriter.append(table);
+//		writer.close();
+//		dataFileWriter.close();
+//		outputStream.close();
 		
-
-		File avro = new File("D:\\Test.Avro");
-		if (!avro.exists()) {
-			writer.create(schema, avro);
-			writer.close();
-			writer.create(schema, outputStream);
-
-		} else {
-			//writer.appendTo(avro);
-			writer.appendTo(new SeekableFileInput(avro), outputStream);
-		}		
-		writer.append(table);
+		dataFileWriter=writer.appendTo(new FsInput(path, conf), outputStream);
+		dataFileWriter.append(table);
 		writer.close();
-
+		dataFileWriter.close();
+		outputStream.close();		
 
 	}
 
