@@ -244,8 +244,8 @@ public class KafkaNewConsumer implements Consumer {
 							record.topic(), record.partition(), record.offset(), record.key(), record.value());
 					msgs.add(record);
 				}
-				FsFileManager FsFile = new FsFileManager();
-				Path pathId = FsFile.getpath(topic, msgs.size());
+				FsFileManager  FsFile = new FsFileManager();
+				Path pathId =  FsFile.getpath(topic, msgs.size());
 				int initavro = FsFile.init_createFile;
 
 				if (WriteToHdfs.writeData(pathId, msgs, initavro)) {

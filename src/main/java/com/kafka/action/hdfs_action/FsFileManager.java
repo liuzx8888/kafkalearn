@@ -68,6 +68,11 @@ public class FsFileManager {
 		int id = File_Id(new Path(path), size);
 		String path_Id = path_new + "/" + sub_topic + "_" + String.valueOf(id) + "." + FileFormat;
 		Path pathId = new Path(path_Id);
+		if (!FS.exists(pathId)) {
+			init_createFile = 0;
+			FS.createNewFile(pathId);
+		}
+
 		return pathId;
 	}
 
