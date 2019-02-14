@@ -8,10 +8,22 @@
 package com.kafka.action.kafka_action;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.avro.Schema;
+import org.apache.avro.file.CodecFactory;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroup;
@@ -27,6 +39,10 @@ import org.apache.parquet.schema.MessageTypeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
+import com.alibaba.fastjson.parser.Feature;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
 
@@ -156,6 +172,43 @@ public class TestParquetWriter {
 		logger.info("idc_id:" + group.getString(1, 0));
 	}
 
+	private static void testParquetWrite() throws IOException {
+		    String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.945417\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.945417\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n";	
+		   	String str1="{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n" + 
+		   			" \"type\": \"record\",\r\n" + 
+		   			" \"name\": \"TAB\",\r\n" + 
+		   			" \"fields\": [\r\n" + 
+		   			" {\"name\": \"ID\",\"type\": \"int\"},\r\n" + 
+		   			" {\"name\": \"BIRTHDATE\",\"type\": \"string\"},\r\n" + 
+		   			" {\"name\": \"AGE\",\"type\": \"int\"},\r\n" + 
+		   			" {\"name\": \"NAME\",\"type\": \"string\"},\r\n" + 
+		   			" {\"name\": \"LASTUPDATEDTTM\",\"type\": \"string\"},\r\n" + 
+		   			" {\"name\": \"ISDELETED\",\"type\": \"int\"}\r\n" + 
+		   			" ]\r\n" + 
+		   			"}";
+	        Schema schema = new Schema.Parser().parse(str1);
+			Path path = new Path("hdfs://192.168.1.70/output1");
+	        AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path,schema);
+	        
+			Object json=JSON.parse(str);
+			Object after = (Object) JSONPath.eval(json, "$.after");
+			String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
+			Map<String, Object> mapafter  = new LinkedHashMap<String, Object>();
+			
+			if (after != null && after != "") {
+				mapafter = JSONObject.parseObject(after.toString(),   Feature.OrderedField);
+			}
+			mapafter.put("LASTUPDATEDTTM", current_ts);
+			mapafter.put("ISDELETED", 0);		
+			GenericRecord record = new GenericData.Record(schema);
+			for(Entry<String, Object> entry : mapafter.entrySet()) {
+				record.put(entry.getKey(),entry.getValue());
+			}
+	
+			writer.write(record);
+	        writer.close();
+	}
+	
 	/**
 	 * 创建时间：2017-8-2 创建者：meter 返回值类型：void
 	 * 
@@ -167,7 +220,8 @@ public class TestParquetWriter {
 	public static void main(String[] args) throws Exception {
 		// testGetSchema();
 		// testParseSchema();
-		testParquetWriter();
+		//testParquetWriter();
+		testParquetWrite();
 		// testParquetReader();
 	}
 

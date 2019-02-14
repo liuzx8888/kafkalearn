@@ -13,6 +13,7 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.mapred.FsInput;
+import org.apache.avro.reflect.ReflectData;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -92,14 +93,15 @@ public class AvroToHdfs extends HashMap<String, Object>  {
 		StringBuilder tableschema = new StringBuilder();
 		
 		tableschema = tableschema.append("{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n"
-				+ "\"type\": \"record\",\r\n" + " \"name\": \"" + tab + "\"," + "\n" + " \"fields\": [" + "\n");
+				+ " \"type\": \"record\",\r\n" + " \"name\": \"" + tab + "\"," + "\n" + " \"fields\": [" + "\n");
 
 		for (Entry<String, Object> entry : mapafter.entrySet()) {
 			tableschema
-					.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": \""
-							+ ConvertDateType
-									.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-							+ "\"}," + "\n");
+				.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
+	//					+ ConvertDateType
+	//							.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
+						+ReflectData.get().getSchema(entry.getValue().getClass())
+						+ "}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);
 		tableschema.append(" ]\r\n" + "}\r\n" + "");
