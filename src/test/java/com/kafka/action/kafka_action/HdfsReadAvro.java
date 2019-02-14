@@ -52,8 +52,8 @@ public class HdfsReadAvro {
 //		InputStream is = hdfs.open(destFile);
 //		readFromAvro(is);
 		HdfsReadAvro avro = new HdfsReadAvro();
-		avro.deserializeAvroFromFile("D:\\TAB_1.avro");
-		//avro.deserializeAvroFromFile("D:\\Test.Avro");
+		//avro.deserializeAvroFromFile("D:\\TAB_1.avro");
+		avro.deserializeAvroFromFile("D:\\test.avro");
 		//avro.deserializeAvroFromFile("D:\\sample.avro");
 
 	}

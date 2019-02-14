@@ -3,6 +3,7 @@ package com.kafka.action.kafka_action;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -15,23 +16,25 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.mapred.FsInput;
-import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
-import com.kafka.action.kafka_action.DFWAppendTest.Sample;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.ConvertDateType;
 import com.kafka.action.util.SystemEnum;
 
-public class TestRecordJson {
+public class TestRecordJson extends HashMap<String, Object>  {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5627262577630813713L;
 
 	public static void main(String[] args) throws IOException {
 
@@ -48,17 +51,19 @@ public class TestRecordJson {
 		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.532001\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.390000000\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n"
 				+ "";
 		System.out.println(str);
-		Object json = JSONArray.parse(str);
+		//Object json = JSONArray.parse(str);
+		Object json=JSON.parse(str);
+		System.out.println(json);
 		String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
 		String tab = ((String) JSONPath.eval(json, "$.table")).replace("DBO.", "");
 		Object primary_keys = (Object) JSONPath.eval(json, "$.primary_keys");
 		String op_type = (String) JSONPath.eval(json, "$.op_type");
 		Object before = (Object) JSONPath.eval(json, "$.before");
 		Object after = (Object) JSONPath.eval(json, "$.after");
-		Map<String, Object> mapafter = new HashMap<String, Object>();
-		Map<String, Object> mapbefore = new HashMap<String, Object>();
+		Map<String, Object> mapafter  = new LinkedHashMap<String, Object>();
+		Map<String, Object> mapbefore = new LinkedHashMap<String, Object>();
 		if (after != null && after != "") {
-			mapafter = JSONObject.parseObject(after.toString(), Feature.OrderedField);
+			mapafter = JSONObject.parseObject(after.toString(),   Feature.OrderedField);
 		}
 		if (before != null && before != "") {
 			mapbefore = JSONObject.parseObject(before.toString(), Feature.OrderedField);
@@ -86,7 +91,6 @@ public class TestRecordJson {
 					flag = false;
 					break;
 				}
-
 			}
 
 			if (!flag) {
@@ -99,24 +103,26 @@ public class TestRecordJson {
 			mapafter.put("ISDELETED", 1);
 		}
 
-		System.out.println(JSON.toJSONString(mapafter));
+		//System.out.println(JSON.toJSONString(mapafter));
+
 
 		StringBuilder tableschema = new StringBuilder();
 		tableschema = tableschema.append("{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n"
 				+ "\"type\": \"record\",\r\n" + " \"name\": \"" + tab + "\"," + "\n" + " \"fields\": [" + "\n");
-
+ 
 		for (Entry<String, Object> entry : mapafter.entrySet()) {
 			tableschema
 					.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": \""
 							+ ConvertDateType
-									.returnDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
+									.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
 							+ "\"}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);
 		tableschema.append(" ]\r\n" + "}\r\n" + "");
-		System.out.println(tableschema.toString());
-
-		Schema schema = new Schema.Parser().parse(tableschema.toString());
+		
+		//Schema schema = new Schema.Parser().parse(tableschema.toString());
+		Schema schema =Schema.parse(JSON.toJSONString(mapafter));
+		System.out.println("schema:"+schema);
 		GenericRecord table = new GenericData.Record(schema);
 
 	
@@ -133,32 +139,44 @@ public class TestRecordJson {
 			}
 		}
 
-		FileSystem fs = null;
-		Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
-		fs = FileSystem.get(conf);
-		Path path = new Path("/OGG/TAB/TAB_1.avro");
-		if (!fs.exists(path)) {
-			fs.createNewFile(path);
-		}
-		FSDataOutputStream outputStream = fs.append(path);
+		System.out.println(table);
 
+		File localfile = new File("D:\\test.avro");
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());		
-
-	
-	
+		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
 		DataFileWriter<GenericRecord> dataFileWriter = null;
-//		dataFileWriter = writer.create(schema, outputStream);
-//		dataFileWriter.append(table);
-//		writer.close();
-//		dataFileWriter.close();
-//		outputStream.close();
-		
-		dataFileWriter=writer.appendTo(new FsInput(path, conf), outputStream);
+		dataFileWriter = writer.create(schema,localfile );
 		dataFileWriter.append(table);
 		writer.close();
 		dataFileWriter.close();
-		outputStream.close();		
+		
+		
+//		FileSystem fs = null;
+//		Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
+//		fs = FileSystem.get(conf);
+//		Path path = new Path("/OGG/TAB/TAB_1.avro");
+//		if (!fs.exists(path)) {
+//			fs.createNewFile(path);
+//		}
+//		FSDataOutputStream outputStream = fs.append(path);
+//
+//		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
+//		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());		
+//
+//	
+//	
+//		DataFileWriter<GenericRecord> dataFileWriter = null;
+////		dataFileWriter = writer.create(schema, outputStream);
+////		dataFileWriter.append(table);
+////		writer.close();
+////		dataFileWriter.close();
+////		outputStream.close();
+//		
+//		dataFileWriter=writer.appendTo(new FsInput(path, conf), outputStream);
+//		dataFileWriter.append(table);
+//		writer.close();
+//		dataFileWriter.close();
+//		outputStream.close();		
 
 	}
 

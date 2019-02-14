@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class TAB extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 6879674274017395042L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TAB\",\"namespace\":\"com.kafka.action.chapter6.avro\",\"fields\":[{\"name\":\"LASTUPDATEDTTM\",\"type\":\"string\"},{\"name\":\"ISDELETED\",\"type\":\"int\"},{\"name\":\"ID\",\"type\":\"int\"},{\"name\":\"BIRTHDATE\",\"type\":\"string\"},{\"name\":\"AGE\",\"type\":\"int\"},{\"name\":\"NAME\",\"type\":\"string\"}]}");
+  private static final long serialVersionUID = 3358629909608145921L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TAB\",\"namespace\":\"com.kafka.action.chapter6.avro\",\"fields\":[{\"name\":\"ID\",\"type\":\"int\"},{\"name\":\"BIRTHDATE\",\"type\":\"string\"},{\"name\":\"AGE\",\"type\":\"int\"},{\"name\":\"NAME\",\"type\":\"string\"},{\"name\":\"LASTUPDATEDTTM\",\"type\":\"string\"},{\"name\":\"ISDELETED\",\"type\":\"int\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -51,12 +51,12 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     return DECODER.decode(b);
   }
 
-  @Deprecated public java.lang.CharSequence LASTUPDATEDTTM;
-  @Deprecated public int ISDELETED;
   @Deprecated public int ID;
   @Deprecated public java.lang.CharSequence BIRTHDATE;
   @Deprecated public int AGE;
   @Deprecated public java.lang.CharSequence NAME;
+  @Deprecated public java.lang.CharSequence LASTUPDATEDTTM;
+  @Deprecated public int ISDELETED;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -67,32 +67,32 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
 
   /**
    * All-args constructor.
-   * @param LASTUPDATEDTTM The new value for LASTUPDATEDTTM
-   * @param ISDELETED The new value for ISDELETED
    * @param ID The new value for ID
    * @param BIRTHDATE The new value for BIRTHDATE
    * @param AGE The new value for AGE
    * @param NAME The new value for NAME
+   * @param LASTUPDATEDTTM The new value for LASTUPDATEDTTM
+   * @param ISDELETED The new value for ISDELETED
    */
-  public TAB(java.lang.CharSequence LASTUPDATEDTTM, java.lang.Integer ISDELETED, java.lang.Integer ID, java.lang.CharSequence BIRTHDATE, java.lang.Integer AGE, java.lang.CharSequence NAME) {
-    this.LASTUPDATEDTTM = LASTUPDATEDTTM;
-    this.ISDELETED = ISDELETED;
+  public TAB(java.lang.Integer ID, java.lang.CharSequence BIRTHDATE, java.lang.Integer AGE, java.lang.CharSequence NAME, java.lang.CharSequence LASTUPDATEDTTM, java.lang.Integer ISDELETED) {
     this.ID = ID;
     this.BIRTHDATE = BIRTHDATE;
     this.AGE = AGE;
     this.NAME = NAME;
+    this.LASTUPDATEDTTM = LASTUPDATEDTTM;
+    this.ISDELETED = ISDELETED;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   // Used by DatumWriter.  Applications should not call.
   public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return LASTUPDATEDTTM;
-    case 1: return ISDELETED;
-    case 2: return ID;
-    case 3: return BIRTHDATE;
-    case 4: return AGE;
-    case 5: return NAME;
+    case 0: return ID;
+    case 1: return BIRTHDATE;
+    case 2: return AGE;
+    case 3: return NAME;
+    case 4: return LASTUPDATEDTTM;
+    case 5: return ISDELETED;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -101,46 +101,14 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: LASTUPDATEDTTM = (java.lang.CharSequence)value$; break;
-    case 1: ISDELETED = (java.lang.Integer)value$; break;
-    case 2: ID = (java.lang.Integer)value$; break;
-    case 3: BIRTHDATE = (java.lang.CharSequence)value$; break;
-    case 4: AGE = (java.lang.Integer)value$; break;
-    case 5: NAME = (java.lang.CharSequence)value$; break;
+    case 0: ID = (java.lang.Integer)value$; break;
+    case 1: BIRTHDATE = (java.lang.CharSequence)value$; break;
+    case 2: AGE = (java.lang.Integer)value$; break;
+    case 3: NAME = (java.lang.CharSequence)value$; break;
+    case 4: LASTUPDATEDTTM = (java.lang.CharSequence)value$; break;
+    case 5: ISDELETED = (java.lang.Integer)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
-  }
-
-  /**
-   * Gets the value of the 'LASTUPDATEDTTM' field.
-   * @return The value of the 'LASTUPDATEDTTM' field.
-   */
-  public java.lang.CharSequence getLASTUPDATEDTTM() {
-    return LASTUPDATEDTTM;
-  }
-
-  /**
-   * Sets the value of the 'LASTUPDATEDTTM' field.
-   * @param value the value to set.
-   */
-  public void setLASTUPDATEDTTM(java.lang.CharSequence value) {
-    this.LASTUPDATEDTTM = value;
-  }
-
-  /**
-   * Gets the value of the 'ISDELETED' field.
-   * @return The value of the 'ISDELETED' field.
-   */
-  public java.lang.Integer getISDELETED() {
-    return ISDELETED;
-  }
-
-  /**
-   * Sets the value of the 'ISDELETED' field.
-   * @param value the value to set.
-   */
-  public void setISDELETED(java.lang.Integer value) {
-    this.ISDELETED = value;
   }
 
   /**
@@ -208,6 +176,38 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
   }
 
   /**
+   * Gets the value of the 'LASTUPDATEDTTM' field.
+   * @return The value of the 'LASTUPDATEDTTM' field.
+   */
+  public java.lang.CharSequence getLASTUPDATEDTTM() {
+    return LASTUPDATEDTTM;
+  }
+
+  /**
+   * Sets the value of the 'LASTUPDATEDTTM' field.
+   * @param value the value to set.
+   */
+  public void setLASTUPDATEDTTM(java.lang.CharSequence value) {
+    this.LASTUPDATEDTTM = value;
+  }
+
+  /**
+   * Gets the value of the 'ISDELETED' field.
+   * @return The value of the 'ISDELETED' field.
+   */
+  public java.lang.Integer getISDELETED() {
+    return ISDELETED;
+  }
+
+  /**
+   * Sets the value of the 'ISDELETED' field.
+   * @param value the value to set.
+   */
+  public void setISDELETED(java.lang.Integer value) {
+    this.ISDELETED = value;
+  }
+
+  /**
    * Creates a new TAB RecordBuilder.
    * @return A new TAB RecordBuilder
    */
@@ -239,12 +239,12 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<TAB>
     implements org.apache.avro.data.RecordBuilder<TAB> {
 
-    private java.lang.CharSequence LASTUPDATEDTTM;
-    private int ISDELETED;
     private int ID;
     private java.lang.CharSequence BIRTHDATE;
     private int AGE;
     private java.lang.CharSequence NAME;
+    private java.lang.CharSequence LASTUPDATEDTTM;
+    private int ISDELETED;
 
     /** Creates a new Builder */
     private Builder() {
@@ -257,28 +257,28 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
      */
     private Builder(com.kafka.action.chapter6.avro.TAB.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.LASTUPDATEDTTM)) {
-        this.LASTUPDATEDTTM = data().deepCopy(fields()[0].schema(), other.LASTUPDATEDTTM);
+      if (isValidValue(fields()[0], other.ID)) {
+        this.ID = data().deepCopy(fields()[0].schema(), other.ID);
         fieldSetFlags()[0] = true;
       }
-      if (isValidValue(fields()[1], other.ISDELETED)) {
-        this.ISDELETED = data().deepCopy(fields()[1].schema(), other.ISDELETED);
+      if (isValidValue(fields()[1], other.BIRTHDATE)) {
+        this.BIRTHDATE = data().deepCopy(fields()[1].schema(), other.BIRTHDATE);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.ID)) {
-        this.ID = data().deepCopy(fields()[2].schema(), other.ID);
+      if (isValidValue(fields()[2], other.AGE)) {
+        this.AGE = data().deepCopy(fields()[2].schema(), other.AGE);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.BIRTHDATE)) {
-        this.BIRTHDATE = data().deepCopy(fields()[3].schema(), other.BIRTHDATE);
+      if (isValidValue(fields()[3], other.NAME)) {
+        this.NAME = data().deepCopy(fields()[3].schema(), other.NAME);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.AGE)) {
-        this.AGE = data().deepCopy(fields()[4].schema(), other.AGE);
+      if (isValidValue(fields()[4], other.LASTUPDATEDTTM)) {
+        this.LASTUPDATEDTTM = data().deepCopy(fields()[4].schema(), other.LASTUPDATEDTTM);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.NAME)) {
-        this.NAME = data().deepCopy(fields()[5].schema(), other.NAME);
+      if (isValidValue(fields()[5], other.ISDELETED)) {
+        this.ISDELETED = data().deepCopy(fields()[5].schema(), other.ISDELETED);
         fieldSetFlags()[5] = true;
       }
     }
@@ -289,107 +289,30 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
      */
     private Builder(com.kafka.action.chapter6.avro.TAB other) {
             super(SCHEMA$);
-      if (isValidValue(fields()[0], other.LASTUPDATEDTTM)) {
-        this.LASTUPDATEDTTM = data().deepCopy(fields()[0].schema(), other.LASTUPDATEDTTM);
+      if (isValidValue(fields()[0], other.ID)) {
+        this.ID = data().deepCopy(fields()[0].schema(), other.ID);
         fieldSetFlags()[0] = true;
       }
-      if (isValidValue(fields()[1], other.ISDELETED)) {
-        this.ISDELETED = data().deepCopy(fields()[1].schema(), other.ISDELETED);
+      if (isValidValue(fields()[1], other.BIRTHDATE)) {
+        this.BIRTHDATE = data().deepCopy(fields()[1].schema(), other.BIRTHDATE);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.ID)) {
-        this.ID = data().deepCopy(fields()[2].schema(), other.ID);
+      if (isValidValue(fields()[2], other.AGE)) {
+        this.AGE = data().deepCopy(fields()[2].schema(), other.AGE);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.BIRTHDATE)) {
-        this.BIRTHDATE = data().deepCopy(fields()[3].schema(), other.BIRTHDATE);
+      if (isValidValue(fields()[3], other.NAME)) {
+        this.NAME = data().deepCopy(fields()[3].schema(), other.NAME);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.AGE)) {
-        this.AGE = data().deepCopy(fields()[4].schema(), other.AGE);
+      if (isValidValue(fields()[4], other.LASTUPDATEDTTM)) {
+        this.LASTUPDATEDTTM = data().deepCopy(fields()[4].schema(), other.LASTUPDATEDTTM);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.NAME)) {
-        this.NAME = data().deepCopy(fields()[5].schema(), other.NAME);
+      if (isValidValue(fields()[5], other.ISDELETED)) {
+        this.ISDELETED = data().deepCopy(fields()[5].schema(), other.ISDELETED);
         fieldSetFlags()[5] = true;
       }
-    }
-
-    /**
-      * Gets the value of the 'LASTUPDATEDTTM' field.
-      * @return The value.
-      */
-    public java.lang.CharSequence getLASTUPDATEDTTM() {
-      return LASTUPDATEDTTM;
-    }
-
-    /**
-      * Sets the value of the 'LASTUPDATEDTTM' field.
-      * @param value The value of 'LASTUPDATEDTTM'.
-      * @return This builder.
-      */
-    public com.kafka.action.chapter6.avro.TAB.Builder setLASTUPDATEDTTM(java.lang.CharSequence value) {
-      validate(fields()[0], value);
-      this.LASTUPDATEDTTM = value;
-      fieldSetFlags()[0] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'LASTUPDATEDTTM' field has been set.
-      * @return True if the 'LASTUPDATEDTTM' field has been set, false otherwise.
-      */
-    public boolean hasLASTUPDATEDTTM() {
-      return fieldSetFlags()[0];
-    }
-
-
-    /**
-      * Clears the value of the 'LASTUPDATEDTTM' field.
-      * @return This builder.
-      */
-    public com.kafka.action.chapter6.avro.TAB.Builder clearLASTUPDATEDTTM() {
-      LASTUPDATEDTTM = null;
-      fieldSetFlags()[0] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'ISDELETED' field.
-      * @return The value.
-      */
-    public java.lang.Integer getISDELETED() {
-      return ISDELETED;
-    }
-
-    /**
-      * Sets the value of the 'ISDELETED' field.
-      * @param value The value of 'ISDELETED'.
-      * @return This builder.
-      */
-    public com.kafka.action.chapter6.avro.TAB.Builder setISDELETED(int value) {
-      validate(fields()[1], value);
-      this.ISDELETED = value;
-      fieldSetFlags()[1] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'ISDELETED' field has been set.
-      * @return True if the 'ISDELETED' field has been set, false otherwise.
-      */
-    public boolean hasISDELETED() {
-      return fieldSetFlags()[1];
-    }
-
-
-    /**
-      * Clears the value of the 'ISDELETED' field.
-      * @return This builder.
-      */
-    public com.kafka.action.chapter6.avro.TAB.Builder clearISDELETED() {
-      fieldSetFlags()[1] = false;
-      return this;
     }
 
     /**
@@ -406,9 +329,9 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder setID(int value) {
-      validate(fields()[2], value);
+      validate(fields()[0], value);
       this.ID = value;
-      fieldSetFlags()[2] = true;
+      fieldSetFlags()[0] = true;
       return this;
     }
 
@@ -417,7 +340,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return True if the 'ID' field has been set, false otherwise.
       */
     public boolean hasID() {
-      return fieldSetFlags()[2];
+      return fieldSetFlags()[0];
     }
 
 
@@ -426,7 +349,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder clearID() {
-      fieldSetFlags()[2] = false;
+      fieldSetFlags()[0] = false;
       return this;
     }
 
@@ -444,9 +367,9 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder setBIRTHDATE(java.lang.CharSequence value) {
-      validate(fields()[3], value);
+      validate(fields()[1], value);
       this.BIRTHDATE = value;
-      fieldSetFlags()[3] = true;
+      fieldSetFlags()[1] = true;
       return this;
     }
 
@@ -455,7 +378,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return True if the 'BIRTHDATE' field has been set, false otherwise.
       */
     public boolean hasBIRTHDATE() {
-      return fieldSetFlags()[3];
+      return fieldSetFlags()[1];
     }
 
 
@@ -465,7 +388,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       */
     public com.kafka.action.chapter6.avro.TAB.Builder clearBIRTHDATE() {
       BIRTHDATE = null;
-      fieldSetFlags()[3] = false;
+      fieldSetFlags()[1] = false;
       return this;
     }
 
@@ -483,9 +406,9 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder setAGE(int value) {
-      validate(fields()[4], value);
+      validate(fields()[2], value);
       this.AGE = value;
-      fieldSetFlags()[4] = true;
+      fieldSetFlags()[2] = true;
       return this;
     }
 
@@ -494,7 +417,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return True if the 'AGE' field has been set, false otherwise.
       */
     public boolean hasAGE() {
-      return fieldSetFlags()[4];
+      return fieldSetFlags()[2];
     }
 
 
@@ -503,7 +426,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder clearAGE() {
-      fieldSetFlags()[4] = false;
+      fieldSetFlags()[2] = false;
       return this;
     }
 
@@ -521,9 +444,9 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder setNAME(java.lang.CharSequence value) {
-      validate(fields()[5], value);
+      validate(fields()[3], value);
       this.NAME = value;
-      fieldSetFlags()[5] = true;
+      fieldSetFlags()[3] = true;
       return this;
     }
 
@@ -532,7 +455,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return True if the 'NAME' field has been set, false otherwise.
       */
     public boolean hasNAME() {
-      return fieldSetFlags()[5];
+      return fieldSetFlags()[3];
     }
 
 
@@ -542,6 +465,83 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       */
     public com.kafka.action.chapter6.avro.TAB.Builder clearNAME() {
       NAME = null;
+      fieldSetFlags()[3] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'LASTUPDATEDTTM' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getLASTUPDATEDTTM() {
+      return LASTUPDATEDTTM;
+    }
+
+    /**
+      * Sets the value of the 'LASTUPDATEDTTM' field.
+      * @param value The value of 'LASTUPDATEDTTM'.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder setLASTUPDATEDTTM(java.lang.CharSequence value) {
+      validate(fields()[4], value);
+      this.LASTUPDATEDTTM = value;
+      fieldSetFlags()[4] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'LASTUPDATEDTTM' field has been set.
+      * @return True if the 'LASTUPDATEDTTM' field has been set, false otherwise.
+      */
+    public boolean hasLASTUPDATEDTTM() {
+      return fieldSetFlags()[4];
+    }
+
+
+    /**
+      * Clears the value of the 'LASTUPDATEDTTM' field.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder clearLASTUPDATEDTTM() {
+      LASTUPDATEDTTM = null;
+      fieldSetFlags()[4] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'ISDELETED' field.
+      * @return The value.
+      */
+    public java.lang.Integer getISDELETED() {
+      return ISDELETED;
+    }
+
+    /**
+      * Sets the value of the 'ISDELETED' field.
+      * @param value The value of 'ISDELETED'.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder setISDELETED(int value) {
+      validate(fields()[5], value);
+      this.ISDELETED = value;
+      fieldSetFlags()[5] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'ISDELETED' field has been set.
+      * @return True if the 'ISDELETED' field has been set, false otherwise.
+      */
+    public boolean hasISDELETED() {
+      return fieldSetFlags()[5];
+    }
+
+
+    /**
+      * Clears the value of the 'ISDELETED' field.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder clearISDELETED() {
       fieldSetFlags()[5] = false;
       return this;
     }
@@ -551,12 +551,12 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     public TAB build() {
       try {
         TAB record = new TAB();
-        record.LASTUPDATEDTTM = fieldSetFlags()[0] ? this.LASTUPDATEDTTM : (java.lang.CharSequence) defaultValue(fields()[0]);
-        record.ISDELETED = fieldSetFlags()[1] ? this.ISDELETED : (java.lang.Integer) defaultValue(fields()[1]);
-        record.ID = fieldSetFlags()[2] ? this.ID : (java.lang.Integer) defaultValue(fields()[2]);
-        record.BIRTHDATE = fieldSetFlags()[3] ? this.BIRTHDATE : (java.lang.CharSequence) defaultValue(fields()[3]);
-        record.AGE = fieldSetFlags()[4] ? this.AGE : (java.lang.Integer) defaultValue(fields()[4]);
-        record.NAME = fieldSetFlags()[5] ? this.NAME : (java.lang.CharSequence) defaultValue(fields()[5]);
+        record.ID = fieldSetFlags()[0] ? this.ID : (java.lang.Integer) defaultValue(fields()[0]);
+        record.BIRTHDATE = fieldSetFlags()[1] ? this.BIRTHDATE : (java.lang.CharSequence) defaultValue(fields()[1]);
+        record.AGE = fieldSetFlags()[2] ? this.AGE : (java.lang.Integer) defaultValue(fields()[2]);
+        record.NAME = fieldSetFlags()[3] ? this.NAME : (java.lang.CharSequence) defaultValue(fields()[3]);
+        record.LASTUPDATEDTTM = fieldSetFlags()[4] ? this.LASTUPDATEDTTM : (java.lang.CharSequence) defaultValue(fields()[4]);
+        record.ISDELETED = fieldSetFlags()[5] ? this.ISDELETED : (java.lang.Integer) defaultValue(fields()[5]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

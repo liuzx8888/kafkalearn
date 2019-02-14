@@ -3,12 +3,10 @@ package com.kafka.action.hdfs_action;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
 
@@ -35,6 +33,13 @@ public class WriteToHdfs {
 						msgs_count++;
 					}
 				}
+				if (fileDocFormat.equals("parquet")) {
+					for (ConsumerRecord<String, String> msg : msgs) {
+						int parquet_1_1 = ((msgs_count + init_createFile) == 0 ? init_createFile : msgs_count+100);
+						ParquetToHdfs.parquetSchema(path, msg, fs, parquet_1_1);
+						msgs_count++;
+					}
+				}				
 				msgs_count = 0;
 				fs.close();
 				rs = true;

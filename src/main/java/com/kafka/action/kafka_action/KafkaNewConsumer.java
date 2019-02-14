@@ -1,5 +1,5 @@
 package com.kafka.action.kafka_action;
-
+ 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -219,8 +219,8 @@ public class KafkaNewConsumer implements Consumer {
 			}
 			FsFileManager FsFile = new FsFileManager();
 			Path pathId = FsFile.getpath(topic, msgs.size());
-			int initavro = FsFile.init_createFile;
-			WriteToHdfs.writeData(pathId, msgs, initavro);
+			int init = FsFile.init_createFile;
+			WriteToHdfs.writeData(pathId, msgs, init);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -244,8 +244,8 @@ public class KafkaNewConsumer implements Consumer {
 							record.topic(), record.partition(), record.offset(), record.key(), record.value());
 					msgs.add(record);
 				}
-				FsFileManager  FsFile = new FsFileManager();
-				Path pathId =  FsFile.getpath(topic, msgs.size());
+				FsFileManager FsFile = new FsFileManager();
+				Path pathId = FsFile.getpath(topic, msgs.size());
 				int initavro = FsFile.init_createFile;
 
 				if (WriteToHdfs.writeData(pathId, msgs, initavro)) {

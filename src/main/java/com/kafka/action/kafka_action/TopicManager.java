@@ -48,7 +48,7 @@ public class TopicManager {
 	/*
 	 * 查询主题
 	 */
-
+ 
 	public static List<String> getTopicList(String prefix, String postfix) {
 		List<String> allTopicList = JavaConversions.seqAsJavaList(utils.getAllTopics());
 		List<String> topicList = allTopicList.stream()

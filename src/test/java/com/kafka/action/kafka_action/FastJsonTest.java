@@ -181,7 +181,7 @@ public class FastJsonTest {
 		System.out.println(vo1.getId());
 		System.out.println(vo1.getAttributes().get("value"));
 	}
-
+ 
 	public static class Entity {
 		private Integer id;
 		private String name;
