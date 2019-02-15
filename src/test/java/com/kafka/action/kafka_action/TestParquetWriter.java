@@ -9,18 +9,13 @@ package com.kafka.action.kafka_action;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.avro.Schema;
-import org.apache.avro.file.CodecFactory;
-import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumWriter;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
@@ -163,13 +158,14 @@ public class TestParquetWriter {
 	 * @描述：测试读parquet文件
 	 */
 	private static void testParquetReader() throws IOException {
-		Path file = new Path("file:///C:\\Users\\meir\\Desktop\\linuxtetdir\\logtxt\\test.parq");
-		ParquetReader.Builder<Group> builder = ParquetReader.builder(new GroupReadSupport(), file);
+		Path path = new Path("hdfs://192.168.1.70/OGG/TAB/TAB_1.parquet");
+		ParquetReader.Builder<Group> builder = ParquetReader.builder(new GroupReadSupport(), path);
 
 		ParquetReader<Group> reader = builder.build();
 		SimpleGroup group = (SimpleGroup) reader.read();
 		logger.info("schema:" + group.getType().toString());
-		logger.info("idc_id:" + group.getString(1, 0));
+		logger.info("idc_id:" + group.getString(4, 0) );
+	
 	}
 
 	private static void testParquetWrite() throws IOException {
@@ -221,8 +217,8 @@ public class TestParquetWriter {
 		// testGetSchema();
 		// testParseSchema();
 		//testParquetWriter();
-		testParquetWrite();
-		// testParquetReader();
+		//testParquetWrite();
+		 testParquetReader();
 	}
 
 }

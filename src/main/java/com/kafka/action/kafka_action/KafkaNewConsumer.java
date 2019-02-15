@@ -1,5 +1,5 @@
 package com.kafka.action.kafka_action;
- 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -247,7 +247,6 @@ public class KafkaNewConsumer implements Consumer {
 				FsFileManager FsFile = new FsFileManager();
 				Path pathId = FsFile.getpath(topic, msgs.size());
 				int initavro = FsFile.init_createFile;
-
 				if (WriteToHdfs.writeData(pathId, msgs, initavro)) {
 					consumer.commitSync();
 
@@ -308,19 +307,18 @@ public class KafkaNewConsumer implements Consumer {
 		 * Thread(target).start(); }
 		 */
 
-		List<String> topics = TopicManager.getTopicList("OGG", "");
+		List<String> topics = TopicManager.getTopicList("OGG_", "");
 		for (String topic : topics) {
 
 			KafkaNewConsumer target = new KafkaNewConsumer();
 			if (AUTOCOMMITOFFSET == 1) {
 				target.subscribeTopicAuto(kafkaConsumerconsumer, topic);
-				kafkaConsumerconsumer.close();
 			} else {
 				String rs = target.MsgsToHdfs(kafkaConsumerconsumer, topic);
 				System.out.println(rs);
-				kafkaConsumerconsumer.close();
 			}
 		}
+		kafkaConsumerconsumer.close();
 
 		/* target.subscribeTopicCustom(kafkaConsumerconsumer, TOPIC); */
 		/* target.subscribeTopicTimestamp(kafkaConsumerconsumer,TOPIC,0); */

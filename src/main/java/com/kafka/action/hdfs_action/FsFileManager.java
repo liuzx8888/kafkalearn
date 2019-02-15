@@ -20,7 +20,7 @@ public class FsFileManager {
 	private static final Logger LOG = Logger.getLogger(FsSystem.class);
 	private static FileSystem FS = null;
 	private static Configuration CONF = null;
-	public  static int init_createFile = 1;
+	public static int init_createFile = 1;
 
 	static {
 
@@ -42,11 +42,20 @@ public class FsFileManager {
 	public int File_Id(Path path, float size) throws FileNotFoundException, IOException {
 		int begin_id = 1;
 
+		if (CONF.get("fileDocFormat").equals("parquet")) {
+			begin_id = 0;
+		}
+
 		FileStatus[] files = FS.listStatus(path);
 		List<FileStatus> FileStatus = Arrays.asList(files);
+		//LOG.info("FileStatus" + FileStatus);
+
 		for (FileStatus File : FileStatus) {
-			if ((File.getLen() + size) > 134217728)
+			if ((File.getLen() + size) > Integer.parseInt(CONF.get("fileDocSize"))
+					&& (File.getPath().getName().contains(CONF.get("fileDocFormat")))) {
 				begin_id++;
+			}
+			LOG.info("begin_id" + begin_id);
 		}
 
 		return begin_id;

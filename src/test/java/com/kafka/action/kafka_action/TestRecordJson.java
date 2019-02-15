@@ -26,6 +26,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.parser.Feature;
+import com.kafka.action.util.AvroSchemaUtil;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.ConvertDateType;
 import com.kafka.action.util.SystemEnum;
@@ -51,91 +52,13 @@ public class TestRecordJson extends HashMap<String, Object>  {
 		// + " \"NAME\": \"kkrrr\"\r\n" + " }\r\n" + "}\r\n";
 		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.945417\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.945417\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n"
 				+ "";
-		//System.out.println(str);
-		//Object json = JSONArray.parse(str);
-		Object json=JSON.parse(str);
-		//System.out.println(json);
-		String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
-		String tab = ((String) JSONPath.eval(json, "$.table")).replace("DBO.", "");
-		Object primary_keys = (Object) JSONPath.eval(json, "$.primary_keys");
-		String op_type = (String) JSONPath.eval(json, "$.op_type");
-		Object before = (Object) JSONPath.eval(json, "$.before");
-		Object after = (Object) JSONPath.eval(json, "$.after");
-		Map<String, Object> mapafter  = new LinkedHashMap<String, Object>();
-		Map<String, Object> mapbefore = new LinkedHashMap<String, Object>();
-		if (after != null && after != "") {
-			mapafter = JSONObject.parseObject(after.toString(),   Feature.OrderedField);
-		}
-		if (before != null && before != "") {
-			mapbefore = JSONObject.parseObject(before.toString(), Feature.OrderedField);
-		}
 
-		mapafter.put("LASTUPDATEDTTM", current_ts);
-		if (op_type.equals("I")) {
-			mapafter.put("ISDELETED", 0);
-		}
-
-		if (op_type.equals("U")) {
-			mapafter.put("ISDELETED", 0);
-			Object pk_before = null;
-			Object pk_after = null;
-			String primary_keystr = primary_keys.toString();
-			Pattern p = Pattern.compile("\\[|\\]|\"");
-			String[] pkarr = p.matcher(primary_keystr).replaceAll("").split(",");
-			Boolean flag = false;
-			for (String primary_key : pkarr) {
-				pk_before = (Object) JSONPath.eval(before, "$." + primary_key + "");
-				pk_after = (Object) JSONPath.eval(after, "$." + primary_key + "");
-				if (pk_before.equals(pk_after)) {
-					flag = true;
-				} else {
-					flag = false;
-					break;
-				}
-			}
-
-			if (!flag) {
-				mapbefore.put("ISDELETED", 1);
-			}
-
-		}
-
-		if (op_type.equals("D")) {
-			mapafter.put("ISDELETED", 1);
-		}
-
-		//System.out.println(JSON.toJSONString(mapafter));
-
-
-		StringBuilder tableschema = new StringBuilder();
-		tableschema = tableschema.append("{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n"
-				+ " \"type\": \"record\",\r\n" + " \"name\": \"" + tab + "\"," + "\n" + " \"fields\": [" + "\n");
-
-		
-		for (Entry<String, Object> entry : mapafter.entrySet()) {
-			tableschema
-					.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
-//							+ ConvertDateType
-//									.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-							+ReflectData.get().getSchema(entry.getValue().getClass())
-							+ "}," + "\n");
-			
-//			Schema  avroType = ReflectData.get().getSchema(entry.getValue().getClass());
-//			System.out.println("avroType: "+avroType);
-		}
-		tableschema.deleteCharAt(tableschema.length() - 2);
-		tableschema.append(" ]\r\n" + "}\r\n" + "");
-		
-		System.out.println(tableschema.toString());
-		
-		//Schema schema = new Schema.Parser().parse(tableschema.toString());
-		String jsonStr = JSON.toJSONString(mapafter,true);
-		System.out.println(jsonStr);
-		Schema schema =Schema.parse(jsonStr);
-		System.out.println("schema:"+schema);
+        String tableschema =AvroSchemaUtil.getSchema1(str);
+		Schema schema = new Schema.Parser().parse(tableschema);
 		GenericRecord table = new GenericData.Record(schema);
-
-	
+		Map<String, Object> mapafter =AvroSchemaUtil.mapafter;
+		Map<String, Object> mapbefore =AvroSchemaUtil.mapbefore;	
+		
 
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
