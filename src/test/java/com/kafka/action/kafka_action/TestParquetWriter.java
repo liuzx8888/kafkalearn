@@ -105,15 +105,13 @@ public class TestParquetWriter {
 		FileSystem FS = FileSystem.get(ConfigUtil.getConfiguration(prop));
 		ExampleParquetWriter.Builder builder = null;
 		if (!FS.exists(file)) {
-			 builder = ExampleParquetWriter.builder(file)
-					.withWriteMode(ParquetFileWriter.Mode.CREATE)
+			builder = ExampleParquetWriter.builder(file).withWriteMode(ParquetFileWriter.Mode.CREATE)
 					.withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
 					.withCompressionCodec(CompressionCodecName.SNAPPY)
 					// .withConf(configuration)
 					.withType(schema);
 		} else {
-			 builder = ExampleParquetWriter.builder(file)
-					.withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+			builder = ExampleParquetWriter.builder(file).withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
 					.withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
 					.withCompressionCodec(CompressionCodecName.SNAPPY)
 					// .withConf(configuration)
@@ -164,47 +162,45 @@ public class TestParquetWriter {
 		ParquetReader<Group> reader = builder.build();
 		SimpleGroup group = (SimpleGroup) reader.read();
 		logger.info("schema:" + group.getType().toString());
-		logger.info("idc_id:" + group.getString(4, 0) );
-	
+		logger.info("idc_id:" + group.getString(4, 0));
+
 	}
 
 	private static void testParquetWrite() throws IOException {
-		    String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.945417\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.945417\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n";	
-		   	String str1="{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n" + 
-		   			" \"type\": \"record\",\r\n" + 
-		   			" \"name\": \"TAB\",\r\n" + 
-		   			" \"fields\": [\r\n" + 
-		   			" {\"name\": \"ID\",\"type\": \"int\"},\r\n" + 
-		   			" {\"name\": \"BIRTHDATE\",\"type\": \"string\"},\r\n" + 
-		   			" {\"name\": \"AGE\",\"type\": \"int\"},\r\n" + 
-		   			" {\"name\": \"NAME\",\"type\": \"string\"},\r\n" + 
-		   			" {\"name\": \"LASTUPDATEDTTM\",\"type\": \"string\"},\r\n" + 
-		   			" {\"name\": \"ISDELETED\",\"type\": \"int\"}\r\n" + 
-		   			" ]\r\n" + 
-		   			"}";
-	        Schema schema = new Schema.Parser().parse(str1);
-			Path path = new Path("hdfs://192.168.1.70/output1");
-	        AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path,schema);
-	        
-			Object json=JSON.parse(str);
-			Object after = (Object) JSONPath.eval(json, "$.after");
-			String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
-			Map<String, Object> mapafter  = new LinkedHashMap<String, Object>();
-			
-			if (after != null && after != "") {
-				mapafter = JSONObject.parseObject(after.toString(),   Feature.OrderedField);
+		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"U\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.945417\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.945417\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n";
+		String str1 = "{\"namespace\": \"com.kafka.action.chapter6.avro\",\r\n" + " \"type\": \"record\",\r\n"
+				+ " \"name\": \"TAB\",\r\n" + " \"fields\": [\r\n" + " {\"name\": \"ID\",\"type\": \"int\"},\r\n"
+				+ " {\"name\": \"BIRTHDATE\",\"type\": \"string\"},\r\n" + " {\"name\": \"AGE\",\"type\": \"int\"},\r\n"
+				+ " {\"name\": \"NAME\",\"type\": \"string\"},\r\n"
+				+ " {\"name\": \"LASTUPDATEDTTM\",\"type\": \"string\"},\r\n"
+				+ " {\"name\": \"ISDELETED\",\"type\": \"int\"}\r\n" + " ]\r\n" + "}";
+		Schema schema = new Schema.Parser().parse(str1);
+		Path path = new Path("hdfs://192.168.1.70/output1");
+		AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path, schema);
+
+		Object json = JSON.parse(str);
+		Object after = (Object) JSONPath.eval(json, "$.after");
+		String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
+		Map<String, Object> mapafter = new LinkedHashMap<String, Object>();
+
+		if (after != null && after != "") {
+			mapafter = JSONObject.parseObject(after.toString(), Feature.OrderedField);
+		}
+		mapafter.put("LASTUPDATEDTTM", current_ts);
+		mapafter.put("ISDELETED", 0);
+
+		GenericRecord record = new GenericData.Record(schema);
+		for (int i = 0; i < 100; i++) {
+			for (Entry<String, Object> entry : mapafter.entrySet()) {
+				//record.put(entry.getKey(), entry.getValue());
+				record.put(entry.getKey(), String.valueOf(i));
 			}
-			mapafter.put("LASTUPDATEDTTM", current_ts);
-			mapafter.put("ISDELETED", 0);		
-			GenericRecord record = new GenericData.Record(schema);
-			for(Entry<String, Object> entry : mapafter.entrySet()) {
-				record.put(entry.getKey(),entry.getValue());
-			}
-	
-			writer.write(record);
-	        writer.close();
+		}
+        System.out.println("record"+record.toString());
+		writer.write(record);
+		writer.close();
 	}
-	
+
 	/**
 	 * 创建时间：2017-8-2 创建者：meter 返回值类型：void
 	 * 
@@ -216,9 +212,9 @@ public class TestParquetWriter {
 	public static void main(String[] args) throws Exception {
 		// testGetSchema();
 		// testParseSchema();
-		//testParquetWriter();
-		//testParquetWrite();
-		 testParquetReader();
+		// testParquetWriter();
+		testParquetWrite();
+		// testParquetReader();
 	}
 
 }

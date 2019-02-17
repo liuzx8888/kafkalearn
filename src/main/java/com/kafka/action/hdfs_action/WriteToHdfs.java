@@ -18,9 +18,10 @@ public class WriteToHdfs {
 		fileDocFormat = HDFSPROP.getProperty("fileDocFormat");
 	}
 
-	public static Boolean writeData(Path path, List<ConsumerRecord<String, String>> msgs, int init_createFile) {
+	public static Boolean writeData(String topic, List<ConsumerRecord<String, String>> msgs) {
 		Boolean rs = false;
 		int msgs_count = 0;
+		
 		try {
 			if (msgs.size() > 0) {
 				FileSystem fs = null;
@@ -28,15 +29,13 @@ public class WriteToHdfs {
 				fs = FileSystem.get(conf);
 				if (fileDocFormat.equals("avro")) {
 					for (ConsumerRecord<String, String> msg : msgs) {
-						int avro_1_1 = ((msgs_count + init_createFile) == 0 ? init_createFile : msgs_count+100);
-						AvroToHdfs.avroSchema(path, msg, fs, avro_1_1);
+						AvroToHdfs.avroSchema(topic, msg, fs);
 						msgs_count++;
 					}
 				}
 				if (fileDocFormat.equals("parquet")) {
 					for (ConsumerRecord<String, String> msg : msgs) {
-						int parquet_1_1 = ((msgs_count + init_createFile) == 0 ? init_createFile : msgs_count+100);
-						ParquetToHdfs.parquetSchema(path, msg, fs, parquet_1_1);
+						ParquetToHdfs.parquetSchema(topic, msg, fs);
 						msgs_count++;
 					}
 				}				

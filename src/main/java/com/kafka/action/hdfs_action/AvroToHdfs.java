@@ -39,9 +39,8 @@ public class AvroToHdfs extends HashMap<String, Object> {
 	 * 
 	 * @fs hdfs 系统
 	 * 
-	 * @init_createFile 是否第一次创建文件
 	 */
-	public static void avroSchema(Path path, ConsumerRecord<String, String> msg, FileSystem fs, int init_createFile)
+	public static void avroSchema(String topic, ConsumerRecord<String, String> msg, FileSystem fs)
 			throws IOException {
 
 		String tableschema = AvroSchemaUtil.getSchema(msg);
@@ -49,6 +48,9 @@ public class AvroToHdfs extends HashMap<String, Object> {
 		GenericRecord table = new GenericData.Record(schema);
 		Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
 		Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
+		
+
+
 		/**
 		 * Hadoop 写入信息
 		 */
@@ -64,7 +66,11 @@ public class AvroToHdfs extends HashMap<String, Object> {
 				table.put(entry.getKey(), entry.getValue());
 			}
 		}
-
+		
+		FsFileManager FsFile = new FsFileManager();
+		Path path = FsFile.getpath(topic, table.toString().length());
+		int init_createFile = FsFile.init_createFile;
+		
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
 

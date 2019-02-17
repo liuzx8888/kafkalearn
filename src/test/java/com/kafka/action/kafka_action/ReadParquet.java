@@ -4,10 +4,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
+
+import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
+import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.GroupFactory;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
@@ -24,20 +31,39 @@ public class ReadParquet {
 
 	public static void main(String[] args) throws Exception {
 
-		 parquetWriter("D:\\parquet-out2","D:\\input.txt");
-		// parquetReaderV2("D:\\parquet-out2");
+		 //parquetWriter("D:\\parquet-out2","D:\\input.txt");
+		//parquetReaderV2("hdfs://192.168.1.70/OGG/TAB/TAB_5.parquet");
+		parquetReaderV2("hdfs://192.168.1.70/output1");
+		
 		 
 	}
 
 	static void parquetReaderV2(String inPath) throws Exception {
+//		Path targetFilePath = new Path(inPath);
+//		ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(targetFilePath).build();
+//
+//		  Iterator<GenericRecord> iter = Collections.singletonList(reader.read()).iterator();
+//		  int count = 0;
+//		  List<Object> list = new ArrayList<Object>();
+//		  //JSONArray list = new JSONArray();
+//		  while (iter.hasNext() && count < 10) {
+//		    // TODO handle out of memory error
+//		    list.add(iter.next().toString().replaceAll("[\\n\\r\\p{C}]", "").replaceAll("\"", "\\\""));
+//		    count++;
+//		  }
+//
+//
+//		  System.out.println(list.toString());
+	 
+		
 		GroupReadSupport readSupport = new GroupReadSupport();
 		Builder<Group> reader = ParquetReader.builder(readSupport, new Path(inPath));
 		ParquetReader<Group> build = reader.build();
 		Group line = null;
 		while ((line = build.read()) != null) {
-			Group time = line.getGroup("time", 0);
-			System.out.println(line.getString("city", 0) + "\t" + line.getString("ip", 0) + "\t"
-					+ time.getInteger("ttl", 0) + "\t" + time.getString("ttl2", 0) + "\t");
+			Group time = line.getGroup("ID", 0);
+//			System.out.println(line.getString("city", 0) + "\t" + line.getString("ip", 0) + "\t"
+//					+ time.getInteger("ttl", 0) + "\t" + time.getString("ttl2", 0) + "\t");
 			System.out.println("读取结束");
 
 		}

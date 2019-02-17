@@ -42,13 +42,8 @@ public class FsFileManager {
 	public int File_Id(Path path, float size) throws FileNotFoundException, IOException {
 		int begin_id = 1;
 
-		if (CONF.get("fileDocFormat").equals("parquet")) {
-			begin_id = 0;
-		}
-
 		FileStatus[] files = FS.listStatus(path);
 		List<FileStatus> FileStatus = Arrays.asList(files);
-		//LOG.info("FileStatus" + FileStatus);
 
 		for (FileStatus File : FileStatus) {
 			if ((File.getLen() + size) > Integer.parseInt(CONF.get("fileDocSize"))
@@ -69,7 +64,7 @@ public class FsFileManager {
 		String path_new = "/" + "OGG" + "/" + sub_topic;
 		String FileFormat = CONF.get("fileDocFormat");
 
-		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1." + FileFormat))) {
+		if (!FS.exists(new Path(path_new + "/" + sub_topic + "_1." + FileFormat)) && !(CONF.get("fileDocFormat").equals("parquet"))) {
 			init_createFile = 0;
 			FS.createNewFile(new Path(path_new + "/" + sub_topic + "_1." + FileFormat));
 		}

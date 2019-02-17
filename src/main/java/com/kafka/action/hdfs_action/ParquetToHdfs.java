@@ -15,12 +15,13 @@ import org.apache.parquet.avro.AvroParquetWriter;
 import com.kafka.action.util.AvroSchemaUtil;
 
 public class ParquetToHdfs {
-	public static void parquetSchema(Path path, ConsumerRecord<String, String> msg, FileSystem fs, int init_createFile)
+	public static void parquetSchema(String topic, ConsumerRecord<String, String> msg, FileSystem fs)
 			throws IOException {
 		String tableschema = AvroSchemaUtil.getSchema(msg);
 		Schema schema = new Schema.Parser().parse(tableschema);
 		Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
 		Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
+
 
 		// message schema {
 		// optional int64 log_id;
@@ -75,11 +76,6 @@ public class ParquetToHdfs {
 		/**
 		 * Hadoop 写入信息
 		 */
-		if (fs.exists(path)) {
-			fs.delete(path);
-		}
-		AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path, schema);
-
 		GenericRecord record = new GenericData.Record(schema);
 		if (mapafter.size() > 0) {
 			for (Entry<String, Object> entry : mapafter.entrySet()) {
@@ -92,7 +88,15 @@ public class ParquetToHdfs {
 				record.put(entry.getKey(), entry.getValue());
 			}
 		}
-
+		
+		FsFileManager FsFile = new FsFileManager();
+		Path path = FsFile.getpath(topic, record.toString().length());
+		int init_createFile = FsFile.init_createFile;
+		
+		if (fs.exists(path)) {
+			fs.delete(path);
+		}
+		AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path, schema);
 		writer.write(record);
 		writer.close();
 	}

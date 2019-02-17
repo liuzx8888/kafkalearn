@@ -4,7 +4,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-
 import org.apache.avro.reflect.ReflectData;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import com.alibaba.fastjson.JSONArray;
@@ -79,7 +78,8 @@ public class AvroSchemaUtil {
 				.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
 	//					+ ConvertDateType
 	//							.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-						+ReflectData.get().getSchema(entry.getValue().getClass())
+						+"\"string\""
+						//+ReflectData.get().getSchema(entry.getValue().getClass())
 						+ "}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);
@@ -87,7 +87,7 @@ public class AvroSchemaUtil {
 		return tableschema.toString();
 	}
 	
-	public static String getSchema1(String msg) {
+	public static String getSchemaStr(String msg) {
 		String msg_value = msg;
 		Object json = JSONArray.parse(msg_value);
 		String current_ts = ((String) JSONPath.eval(json, "$.current_ts")).replace("T", " ");
@@ -150,7 +150,8 @@ public class AvroSchemaUtil {
 				.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
 	//					+ ConvertDateType
 	//							.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-						+ReflectData.get().getSchema(entry.getValue().getClass())
+						+"\"string\""
+						//+ReflectData.get().getSchema(entry.getValue().getClass())
 						+ "}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);

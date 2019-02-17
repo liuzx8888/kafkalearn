@@ -78,6 +78,7 @@ public class KafkaNewConsumer implements Consumer {
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 					// TODO Auto-generated method stub
 					consumer.commitAsync(); // 提交偏移量
+					
 
 				}
 
@@ -217,10 +218,8 @@ public class KafkaNewConsumer implements Consumer {
 						record.offset(), record.key(), record.value());
 				msgs.add(record);
 			}
-			FsFileManager FsFile = new FsFileManager();
-			Path pathId = FsFile.getpath(topic, msgs.size());
-			int init = FsFile.init_createFile;
-			WriteToHdfs.writeData(pathId, msgs, init);
+
+			WriteToHdfs.writeData(topic, msgs);
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -244,13 +243,11 @@ public class KafkaNewConsumer implements Consumer {
 							record.topic(), record.partition(), record.offset(), record.key(), record.value());
 					msgs.add(record);
 				}
-				FsFileManager FsFile = new FsFileManager();
-				Path pathId = FsFile.getpath(topic, msgs.size());
-				int initavro = FsFile.init_createFile;
-				if (WriteToHdfs.writeData(pathId, msgs, initavro)) {
+
+				if (WriteToHdfs.writeData(topic, msgs)) {
 					consumer.commitSync();
 
-					LOG.info("写入Hdfs [" + pathId.toString() + "] 成功！！！");
+					LOG.info("写入 Hdfs  成功！！！");
 					rs = "写入HDFS成功！！";
 					//
 					// consumer.commitAsync(new OffsetCommitCallback() {
@@ -270,7 +267,7 @@ public class KafkaNewConsumer implements Consumer {
 					// Thread.sleep(3000);
 
 				} else {
-					LOG.info("写入Hdfs [" + pathId.toString() + "] 失败！！！");
+					LOG.info("写入   Hdfs 失败！！！");
 				}
 
 				// inputStream = new BufferedInputStream(new

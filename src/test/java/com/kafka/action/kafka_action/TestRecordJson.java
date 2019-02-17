@@ -31,7 +31,7 @@ import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.ConvertDateType;
 import com.kafka.action.util.SystemEnum;
 
-public class TestRecordJson extends HashMap<String, Object>  {
+public class TestRecordJson extends HashMap<String, Object> {
 
 	/**
 	 * 
@@ -53,63 +53,70 @@ public class TestRecordJson extends HashMap<String, Object>  {
 		String str = "{\"table\":\"DBO.TAB\",\"op_type\":\"I\",\"op_ts\":\"2019-01-23 06:00:27.945417\",\"current_ts\":\"2019-01-27T15:10:49.945417\",\"pos\":\"00000000420000115169\",\"primary_keys\":[\"ID\"],\"after\":{\"ID\":220637,\"BIRTHDATE\":\"2019-01-25 20:02:59.945417\",\"AGE\":99,\"NAME\":\"kkyyy\"}}\r\n"
 				+ "";
 
-        String tableschema =AvroSchemaUtil.getSchema1(str);
+		String tableschema = AvroSchemaUtil.getSchemaStr(str);
+		System.out.println(tableschema);
 		Schema schema = new Schema.Parser().parse(tableschema);
 		GenericRecord table = new GenericData.Record(schema);
-		Map<String, Object> mapafter =AvroSchemaUtil.mapafter;
-		Map<String, Object> mapbefore =AvroSchemaUtil.mapbefore;	
-		
+		Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
+		Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
 
-		if (mapafter.size() > 0) {
-			for (Entry<String, Object> entry : mapafter.entrySet()) {
-				table.put(entry.getKey(), entry.getValue());
+		for (int i = 0; i < 100; i++) {
+			if (mapafter.size() > 0) {
+				for (Entry<String, Object> entry : mapafter.entrySet()) {
+					//table.put(entry.getKey(), entry.getValue());
+					table.put(entry.getKey(), String.valueOf(i));
+					System.out.println(table);
+				}
 			}
+
+			if (mapbefore.size() > 0) {
+				for (Entry<String, Object> entry : mapbefore.entrySet()) {
+					table.put(entry.getKey(), entry.getValue());
+				}
+			}
+
 		}
 
-		if (mapbefore.size() > 0) {
-			for (Entry<String, Object> entry : mapbefore.entrySet()) {
-				table.put(entry.getKey(), entry.getValue());
-			}
-		}
-
-		System.out.println(table);
+		System.out.println(table.toString());
 
 		File localfile = new File("D:\\test.avro");
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
 		DataFileWriter<GenericRecord> dataFileWriter = null;
-		dataFileWriter = writer.create(schema,localfile );
+		dataFileWriter = writer.create(schema, localfile);
 		dataFileWriter.append(table);
 		writer.close();
 		dataFileWriter.close();
-		
-		
-//		FileSystem fs = null;
-//		Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
-//		fs = FileSystem.get(conf);
-//		Path path = new Path("/OGG/TAB/TAB_1.avro");
-//		if (!fs.exists(path)) {
-//			fs.createNewFile(path);
-//		}
-//		FSDataOutputStream outputStream = fs.append(path);
-//
-//		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
-//		DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());		
-//
-//	
-//	
-//		DataFileWriter<GenericRecord> dataFileWriter = null;
-////		dataFileWriter = writer.create(schema, outputStream);
-////		dataFileWriter.append(table);
-////		writer.close();
-////		dataFileWriter.close();
-////		outputStream.close();
-//		
-//		dataFileWriter=writer.appendTo(new FsInput(path, conf), outputStream);
-//		dataFileWriter.append(table);
-//		writer.close();
-//		dataFileWriter.close();
-//		outputStream.close();		
+
+		// FileSystem fs = null;
+		// Configuration conf =
+		// ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
+		// fs = FileSystem.get(conf);
+		// Path path = new Path("/OGG/TAB/TAB_1.avro");
+		// if (!fs.exists(path)) {
+		// fs.createNewFile(path);
+		// }
+		// FSDataOutputStream outputStream = fs.append(path);
+		//
+		// DatumWriter<GenericRecord> datumWriter = new
+		// GenericDatumWriter<GenericRecord>(schema);
+		// DataFileWriter<GenericRecord> writer = new
+		// DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
+		//
+		//
+		//
+		// DataFileWriter<GenericRecord> dataFileWriter = null;
+		//// dataFileWriter = writer.create(schema, outputStream);
+		//// dataFileWriter.append(table);
+		//// writer.close();
+		//// dataFileWriter.close();
+		//// outputStream.close();
+		//
+		// dataFileWriter=writer.appendTo(new FsInput(path, conf), outputStream);
+		// dataFileWriter.append(table);
+		// writer.close();
+		// dataFileWriter.close();
+		// outputStream.close();
 
 	}
 
