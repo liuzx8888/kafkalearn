@@ -46,11 +46,13 @@ public class AvroToHdfs extends HashMap<String, Object> {
 	 */
 	public static void avroSchema(String topic, List<ConsumerRecord<String, String>> msgs, FileSystem fs)
 			throws IOException {
+		int msgs_count = 0;
+		String tableschema = AvroSchemaUtil.getSchema(msgs.get(0));
+		Schema schema = new Schema.Parser().parse(tableschema);
 
+		FsFileManager FsFile = new FsFileManager();
 		for (ConsumerRecord<String, String> msg : msgs) {
-			String tableschema = AvroSchemaUtil.getSchema(msg);
-			//LOG.info(tableschema);
-			Schema schema = new Schema.Parser().parse(tableschema);
+			AvroSchemaUtil.getSchema(msg);
 			GenericRecord table = new GenericData.Record(schema);
 			Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
 			Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
@@ -70,17 +72,17 @@ public class AvroToHdfs extends HashMap<String, Object> {
 				}
 			}
 
-			FsFileManager FsFile = new FsFileManager();
+
 			Path path = FsFile.getpath(topic, table.toString().length());
 			int init_createFile = FsFile.init_createFile;
-
+			System.out.println("init_createFile:"+init_createFile);
 			DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 			DataFileWriter<GenericRecord> writer = new DataFileWriter(datumWriter).setCodec(CodecFactory.snappyCodec());
 
 			DataFileWriter<GenericRecord> dataFileWriter = null;
 			FSDataOutputStream outputStream = fs.append(path);
 
-			if (init_createFile == 0) {
+			if (init_createFile == 0 && msgs_count==0) {
 				dataFileWriter = writer.create(schema, outputStream);
 				dataFileWriter.append(table);
 			} else {
@@ -90,6 +92,8 @@ public class AvroToHdfs extends HashMap<String, Object> {
 			writer.close();
 			dataFileWriter.close();
 			outputStream.close();
+			msgs_count++;
 		}
+		LOG.info("msgs_count:" + msgs_count);
 	}
 }

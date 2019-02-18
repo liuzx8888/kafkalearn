@@ -20,7 +20,6 @@ public class WriteToHdfs {
 
 	public static Boolean writeData(String topic, List<ConsumerRecord<String, String>> msgs) {
 		Boolean rs = false;
-		int msgs_count = 0;
 
 		try {
 			if (msgs.size() > 0) {
@@ -33,7 +32,6 @@ public class WriteToHdfs {
 				if (fileDocFormat.equals("parquet")) {
 					ParquetToHdfs.parquetSchema(topic, msgs, fs);
 				}
-				msgs_count = 0;
 				fs.close();
 				rs = true;
 			}

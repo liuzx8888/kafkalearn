@@ -28,8 +28,8 @@ public class ReadParquet {
 	public static void main(String[] args) throws Exception {
 
 		 //parquetWriter("D:\\parquet-out2","D:\\input.txt");
-		//parquetReaderV2("hdfs://192.168.1.70/OGG/TAB/TAB_5.parquet");
-		parquetReaderV2("hdfs://192.168.1.70/output1");
+		parquetReaderV2("hdfs://192.168.1.70/OGG/TAB/TAB_12.parquet");
+		//parquetReaderV2("hdfs://192.168.1.70/output1");
 		
 		 
 	}
