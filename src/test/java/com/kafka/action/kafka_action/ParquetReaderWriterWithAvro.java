@@ -21,9 +21,9 @@ public class ParquetReaderWriterWithAvro {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ParquetReaderWriterWithAvro.class);
 
 	private static final Schema SCHEMA;
-	private static final String SCHEMA_LOCATION = "/org/maxkons/hadoop_snippets/parquet/avroToParquet.avsc";
-	private static final Path OUT_PATH = new Path("/home/max/Downloads/sample.parquet");
-
+	private static final String SCHEMA_LOCATION = "	/kafka-action/src/main/resources/TAB.avsc";
+	private static final Path OUT_PATH = new Path("hdfs://192.168.1.70/output1.parquet");
+ 
 	static {
 		try (InputStream inStream = ParquetReaderWriterWithAvro.class.getResourceAsStream(SCHEMA_LOCATION)) {
 			SCHEMA = new Schema.Parser().parse(IOUtils.toString(inStream, "UTF-8"));
@@ -62,7 +62,7 @@ public class ParquetReaderWriterWithAvro {
 			}
 		}
 	}
-
+ 
 	public void writeToParquet(List<GenericData.Record> recordsToWrite, Path fileToWrite) throws IOException {
 		try (ParquetWriter<GenericData.Record> writer = AvroParquetWriter.<GenericData.Record>builder(fileToWrite)
 				.withSchema(SCHEMA).withConf(new Configuration()).withCompressionCodec(CompressionCodecName.SNAPPY)

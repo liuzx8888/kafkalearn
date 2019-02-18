@@ -78,8 +78,8 @@ public class AvroSchemaUtil {
 				.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
 	//					+ ConvertDateType
 	//							.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-						+"\"string\""
-						//+ReflectData.get().getSchema(entry.getValue().getClass())
+						//+"\"string\""
+						+ReflectData.get().getSchema(entry.getValue().getClass())
 						+ "}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);
@@ -150,8 +150,8 @@ public class AvroSchemaUtil {
 				.append(" {\"name\": \"" + entry.getKey() + "\",\"type\": "
 	//					+ ConvertDateType
 	//							.returnAvroDatetype(entry.getValue().getClass().getTypeName().replace("java.lang.", ""))
-						+"\"string\""
-						//+ReflectData.get().getSchema(entry.getValue().getClass())
+						//+"\"string\""
+						+ReflectData.get().getSchema(entry.getValue().getClass())
 						+ "}," + "\n");
 		}
 		tableschema.deleteCharAt(tableschema.length() - 2);

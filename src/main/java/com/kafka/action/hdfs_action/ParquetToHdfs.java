@@ -1,6 +1,7 @@
 package com.kafka.action.hdfs_action;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -15,46 +16,59 @@ import org.apache.parquet.avro.AvroParquetWriter;
 import com.kafka.action.util.AvroSchemaUtil;
 
 public class ParquetToHdfs {
-	public static void parquetSchema(String topic, ConsumerRecord<String, String> msg, FileSystem fs)
+	public static void parquetSchema(String topic, List<ConsumerRecord<String, String>> msgs, FileSystem fs)
 			throws IOException {
-		String tableschema = AvroSchemaUtil.getSchema(msg);
+		FsFileManager FsFile = new FsFileManager();
+		Path path = FsFile.getpath(topic, 1);
+		int init_createFile = FsFile.init_createFile;
+
+		if (fs.exists(path)) {
+			fs.delete(path);
+		}
+		for (ConsumerRecord<String, String> msg : msgs) {
+	    String tableschema = AvroSchemaUtil.getSchema(msg);
 		Schema schema = new Schema.Parser().parse(tableschema);
-		Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
-		Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
+		AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path, schema);
+	
+	
+			AvroSchemaUtil.getSchema(msg);
+			Map<String, Object> mapafter = AvroSchemaUtil.mapafter;
+			Map<String, Object> mapbefore = AvroSchemaUtil.mapbefore;
 
+			/**
+			 * Hdfs 写入信息
+			 */
+			GenericRecord record = new GenericData.Record(schema);
 
-		// message schema {
-		// optional int64 log_id;
-		// optional binary idc_id;
-		// optional int64 house_id;
-		// optional int64 src_ip_long;
-		// optional int64 dest_ip_long;
-		// optional int64 src_port;
-		// optional int64 dest_port;
-		// optional int32 protocol_type;
-		// optional binary url64;
-		// optional binary access_time;
-		// }
+			if (mapafter.size() > 0) {
+				for (Entry<String, Object> entry : mapafter.entrySet()) {
+					record.put(entry.getKey(), entry.getValue());
+				}
+			}
 
-		// MessageType schema =
-		// MessageTypeParser.parseMessageType(tableschema.toString());
-		// ExampleParquetWriter.Builder builder =null;
+			if (mapbefore.size() > 0) {
+				for (Entry<String, Object> entry : mapbefore.entrySet()) {
+					record.put(entry.getKey(), entry.getValue());
+				}
+			}
+			writer.write(record);
+		}
+			writer.close();
+
+		// MessageType schemaPar = new AvroSchemaConverter().convert(schema);
+		// ExampleParquetWriter.Builder builder = null;
 		// if (init_createFile == 0) {
-		// builder = ExampleParquetWriter.builder(path)
-		// .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+		// builder =
+		// ExampleParquetWriter.builder(path).withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
 		// .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-		// .withCompressionCodec(CompressionCodecName.SNAPPY)
-		// .withConf(fs.getConf())
-		// .withType(schema);
+		// .withCompressionCodec(CompressionCodecName.SNAPPY).withConf(fs.getConf()).withType(schemaPar);
 		// } else {
-		// builder = ExampleParquetWriter.builder(path)
-		// .withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
+		// builder =
+		// ExampleParquetWriter.builder(path).withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
 		// .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
-		// .withCompressionCodec(CompressionCodecName.SNAPPY)
-		// .withConf(fs.getConf())
-		// .withType(schema);
+		// .withCompressionCodec(CompressionCodecName.SNAPPY).withConf(fs.getConf()).withType(schemaPar);
 		// }
-
+		//
 		// ParquetWriter<Group> writer = builder.build();
 		// SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
 		// Group table = groupFactory.newGroup();
@@ -69,35 +83,10 @@ public class ParquetToHdfs {
 		// table.append(entry.getKey(), (String) entry.getValue());
 		// }
 		// }
-
+		//
 		// writer.write(table);
 		// writer.close();
 
-		/**
-		 * Hadoop 写入信息
-		 */
-		GenericRecord record = new GenericData.Record(schema);
-		if (mapafter.size() > 0) {
-			for (Entry<String, Object> entry : mapafter.entrySet()) {
-				record.put(entry.getKey(), entry.getValue());
-			}
-		}
-		
-		if (mapbefore.size() > 0) {
-			for (Entry<String, Object> entry : mapbefore.entrySet()) {
-				record.put(entry.getKey(), entry.getValue());
-			}
-		}
-		
-		FsFileManager FsFile = new FsFileManager();
-		Path path = FsFile.getpath(topic, record.toString().length());
-		int init_createFile = FsFile.init_createFile;
-		
-		if (fs.exists(path)) {
-			fs.delete(path);
-		}
-		AvroParquetWriter<GenericRecord> writer = new AvroParquetWriter<GenericRecord>(path, schema);
-		writer.write(record);
-		writer.close();
 	}
+
 }

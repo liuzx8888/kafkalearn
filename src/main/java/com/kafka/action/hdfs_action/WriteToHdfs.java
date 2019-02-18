@@ -21,24 +21,18 @@ public class WriteToHdfs {
 	public static Boolean writeData(String topic, List<ConsumerRecord<String, String>> msgs) {
 		Boolean rs = false;
 		int msgs_count = 0;
-		
+
 		try {
 			if (msgs.size() > 0) {
 				FileSystem fs = null;
 				Configuration conf = ConfigUtil.getConfiguration(ConfigUtil.getProperties(SystemEnum.HDFS));
 				fs = FileSystem.get(conf);
 				if (fileDocFormat.equals("avro")) {
-					for (ConsumerRecord<String, String> msg : msgs) {
-						AvroToHdfs.avroSchema(topic, msg, fs);
-						msgs_count++;
-					}
+					AvroToHdfs.avroSchema(topic, msgs, fs);
 				}
 				if (fileDocFormat.equals("parquet")) {
-					for (ConsumerRecord<String, String> msg : msgs) {
-						ParquetToHdfs.parquetSchema(topic, msg, fs);
-						msgs_count++;
-					}
-				}				
+					ParquetToHdfs.parquetSchema(topic, msgs, fs);
+				}
 				msgs_count = 0;
 				fs.close();
 				rs = true;

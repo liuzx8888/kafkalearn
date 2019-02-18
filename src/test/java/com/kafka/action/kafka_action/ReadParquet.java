@@ -4,10 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 
 import org.apache.avro.generic.GenericRecord;
@@ -39,7 +35,7 @@ public class ReadParquet {
 	}
 
 	static void parquetReaderV2(String inPath) throws Exception {
-//		Path targetFilePath = new Path(inPath);
+		Path targetFilePath = new Path(inPath);
 //		ParquetReader<GenericRecord> reader = AvroParquetReader.<GenericRecord>builder(targetFilePath).build();
 //
 //		  Iterator<GenericRecord> iter = Collections.singletonList(reader.read()).iterator();
@@ -56,18 +52,12 @@ public class ReadParquet {
 //		  System.out.println(list.toString());
 	 
 		
-		GroupReadSupport readSupport = new GroupReadSupport();
-		Builder<Group> reader = ParquetReader.builder(readSupport, new Path(inPath));
-		ParquetReader<Group> build = reader.build();
-		Group line = null;
-		while ((line = build.read()) != null) {
-			Group time = line.getGroup("ID", 0);
-//			System.out.println(line.getString("city", 0) + "\t" + line.getString("ip", 0) + "\t"
-//					+ time.getInteger("ttl", 0) + "\t" + time.getString("ttl2", 0) + "\t");
-			System.out.println("读取结束");
+	     AvroParquetReader<GenericRecord> reader = new AvroParquetReader<GenericRecord>(targetFilePath);
+	        GenericRecord record ;
 
-		}
-
+	        while ((record = reader.read())!= null){
+	            System.out.println(record.toString());
+	        }
 	}
 
 	// 新版本中new ParquetReader()所有构造方法好像都弃用了,用上面的builder去构造对象

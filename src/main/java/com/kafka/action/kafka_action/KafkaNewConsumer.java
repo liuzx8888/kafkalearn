@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -23,7 +22,6 @@ import org.apache.kafka.clients.consumer.OffsetCommitCallback;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.log4j.Logger;
 
-import com.kafka.action.hdfs_action.FsFileManager;
 import com.kafka.action.hdfs_action.WriteToHdfs;
 import com.kafka.action.util.ConfigUtil;
 import com.kafka.action.util.SystemEnum;
@@ -78,8 +76,6 @@ public class KafkaNewConsumer implements Consumer {
 				public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 					// TODO Auto-generated method stub
 					consumer.commitAsync(); // 提交偏移量
-					
-
 				}
 
 				@Override
