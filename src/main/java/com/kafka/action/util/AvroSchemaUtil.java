@@ -33,6 +33,7 @@ public class AvroSchemaUtil {
 		}
 
 		mapafter.put("LASTUPDATEDTTM", current_ts);
+		mapafter.put("PARTITION_Filter", current_ts.substring(0, 7));		
 		if (op_type.equals("I")) {
 			mapafter.put("ISDELETED", 0);
 		}

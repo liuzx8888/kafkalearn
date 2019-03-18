@@ -121,7 +121,7 @@ public class KafkaNewConsumer implements Consumer {
 					icount++;
 					icount1++;
 				}
-
+				
 				if (icount >= minCommitSize) {
 					consumer.commitAsync(new OffsetCommitCallback() {
 

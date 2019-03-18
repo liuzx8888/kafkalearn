@@ -7,6 +7,7 @@
                 {"name": "AGE","type":  "int"},
                 {"name": "NAME","type":  "string"},
                 {"name": "LASTUPDATEDTTM","type":  "string"},
+                {"name": "PARTITION_Filter","type":  "string"},                
                 {"name": "ISDELETED","type":  "int"}
               ]
 }

@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class TAB extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 3358629909608145921L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TAB\",\"namespace\":\"com.kafka.action.chapter6.avro\",\"fields\":[{\"name\":\"ID\",\"type\":\"int\"},{\"name\":\"BIRTHDATE\",\"type\":\"string\"},{\"name\":\"AGE\",\"type\":\"int\"},{\"name\":\"NAME\",\"type\":\"string\"},{\"name\":\"LASTUPDATEDTTM\",\"type\":\"string\"},{\"name\":\"ISDELETED\",\"type\":\"int\"}]}");
+  private static final long serialVersionUID = -7306096202629010122L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TAB\",\"namespace\":\"com.kafka.action.chapter6.avro\",\"fields\":[{\"name\":\"ID\",\"type\":\"int\"},{\"name\":\"BIRTHDATE\",\"type\":\"string\"},{\"name\":\"AGE\",\"type\":\"int\"},{\"name\":\"NAME\",\"type\":\"string\"},{\"name\":\"LASTUPDATEDTTM\",\"type\":\"string\"},{\"name\":\"PARTITION_Filter\",\"type\":\"string\"},{\"name\":\"ISDELETED\",\"type\":\"int\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -56,6 +56,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
   @Deprecated public int AGE;
   @Deprecated public java.lang.CharSequence NAME;
   @Deprecated public java.lang.CharSequence LASTUPDATEDTTM;
+  @Deprecated public java.lang.CharSequence PARTITION_Filter;
   @Deprecated public int ISDELETED;
 
   /**
@@ -72,14 +73,16 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
    * @param AGE The new value for AGE
    * @param NAME The new value for NAME
    * @param LASTUPDATEDTTM The new value for LASTUPDATEDTTM
+   * @param PARTITION_Filter The new value for PARTITION_Filter
    * @param ISDELETED The new value for ISDELETED
    */
-  public TAB(java.lang.Integer ID, java.lang.CharSequence BIRTHDATE, java.lang.Integer AGE, java.lang.CharSequence NAME, java.lang.CharSequence LASTUPDATEDTTM, java.lang.Integer ISDELETED) {
+  public TAB(java.lang.Integer ID, java.lang.CharSequence BIRTHDATE, java.lang.Integer AGE, java.lang.CharSequence NAME, java.lang.CharSequence LASTUPDATEDTTM, java.lang.CharSequence PARTITION_Filter, java.lang.Integer ISDELETED) {
     this.ID = ID;
     this.BIRTHDATE = BIRTHDATE;
     this.AGE = AGE;
     this.NAME = NAME;
     this.LASTUPDATEDTTM = LASTUPDATEDTTM;
+    this.PARTITION_Filter = PARTITION_Filter;
     this.ISDELETED = ISDELETED;
   }
 
@@ -92,7 +95,8 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     case 2: return AGE;
     case 3: return NAME;
     case 4: return LASTUPDATEDTTM;
-    case 5: return ISDELETED;
+    case 5: return PARTITION_Filter;
+    case 6: return ISDELETED;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -106,7 +110,8 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     case 2: AGE = (java.lang.Integer)value$; break;
     case 3: NAME = (java.lang.CharSequence)value$; break;
     case 4: LASTUPDATEDTTM = (java.lang.CharSequence)value$; break;
-    case 5: ISDELETED = (java.lang.Integer)value$; break;
+    case 5: PARTITION_Filter = (java.lang.CharSequence)value$; break;
+    case 6: ISDELETED = (java.lang.Integer)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -192,6 +197,22 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
   }
 
   /**
+   * Gets the value of the 'PARTITION_Filter' field.
+   * @return The value of the 'PARTITION_Filter' field.
+   */
+  public java.lang.CharSequence getPARTITIONFilter() {
+    return PARTITION_Filter;
+  }
+
+  /**
+   * Sets the value of the 'PARTITION_Filter' field.
+   * @param value the value to set.
+   */
+  public void setPARTITIONFilter(java.lang.CharSequence value) {
+    this.PARTITION_Filter = value;
+  }
+
+  /**
    * Gets the value of the 'ISDELETED' field.
    * @return The value of the 'ISDELETED' field.
    */
@@ -244,6 +265,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     private int AGE;
     private java.lang.CharSequence NAME;
     private java.lang.CharSequence LASTUPDATEDTTM;
+    private java.lang.CharSequence PARTITION_Filter;
     private int ISDELETED;
 
     /** Creates a new Builder */
@@ -277,9 +299,13 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
         this.LASTUPDATEDTTM = data().deepCopy(fields()[4].schema(), other.LASTUPDATEDTTM);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.ISDELETED)) {
-        this.ISDELETED = data().deepCopy(fields()[5].schema(), other.ISDELETED);
+      if (isValidValue(fields()[5], other.PARTITION_Filter)) {
+        this.PARTITION_Filter = data().deepCopy(fields()[5].schema(), other.PARTITION_Filter);
         fieldSetFlags()[5] = true;
+      }
+      if (isValidValue(fields()[6], other.ISDELETED)) {
+        this.ISDELETED = data().deepCopy(fields()[6].schema(), other.ISDELETED);
+        fieldSetFlags()[6] = true;
       }
     }
 
@@ -309,9 +335,13 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
         this.LASTUPDATEDTTM = data().deepCopy(fields()[4].schema(), other.LASTUPDATEDTTM);
         fieldSetFlags()[4] = true;
       }
-      if (isValidValue(fields()[5], other.ISDELETED)) {
-        this.ISDELETED = data().deepCopy(fields()[5].schema(), other.ISDELETED);
+      if (isValidValue(fields()[5], other.PARTITION_Filter)) {
+        this.PARTITION_Filter = data().deepCopy(fields()[5].schema(), other.PARTITION_Filter);
         fieldSetFlags()[5] = true;
+      }
+      if (isValidValue(fields()[6], other.ISDELETED)) {
+        this.ISDELETED = data().deepCopy(fields()[6].schema(), other.ISDELETED);
+        fieldSetFlags()[6] = true;
       }
     }
 
@@ -509,6 +539,45 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
     }
 
     /**
+      * Gets the value of the 'PARTITION_Filter' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getPARTITIONFilter() {
+      return PARTITION_Filter;
+    }
+
+    /**
+      * Sets the value of the 'PARTITION_Filter' field.
+      * @param value The value of 'PARTITION_Filter'.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder setPARTITIONFilter(java.lang.CharSequence value) {
+      validate(fields()[5], value);
+      this.PARTITION_Filter = value;
+      fieldSetFlags()[5] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'PARTITION_Filter' field has been set.
+      * @return True if the 'PARTITION_Filter' field has been set, false otherwise.
+      */
+    public boolean hasPARTITIONFilter() {
+      return fieldSetFlags()[5];
+    }
+
+
+    /**
+      * Clears the value of the 'PARTITION_Filter' field.
+      * @return This builder.
+      */
+    public com.kafka.action.chapter6.avro.TAB.Builder clearPARTITIONFilter() {
+      PARTITION_Filter = null;
+      fieldSetFlags()[5] = false;
+      return this;
+    }
+
+    /**
       * Gets the value of the 'ISDELETED' field.
       * @return The value.
       */
@@ -522,9 +591,9 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder setISDELETED(int value) {
-      validate(fields()[5], value);
+      validate(fields()[6], value);
       this.ISDELETED = value;
-      fieldSetFlags()[5] = true;
+      fieldSetFlags()[6] = true;
       return this;
     }
 
@@ -533,7 +602,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return True if the 'ISDELETED' field has been set, false otherwise.
       */
     public boolean hasISDELETED() {
-      return fieldSetFlags()[5];
+      return fieldSetFlags()[6];
     }
 
 
@@ -542,7 +611,7 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
       * @return This builder.
       */
     public com.kafka.action.chapter6.avro.TAB.Builder clearISDELETED() {
-      fieldSetFlags()[5] = false;
+      fieldSetFlags()[6] = false;
       return this;
     }
 
@@ -556,7 +625,8 @@ public class TAB extends org.apache.avro.specific.SpecificRecordBase implements 
         record.AGE = fieldSetFlags()[2] ? this.AGE : (java.lang.Integer) defaultValue(fields()[2]);
         record.NAME = fieldSetFlags()[3] ? this.NAME : (java.lang.CharSequence) defaultValue(fields()[3]);
         record.LASTUPDATEDTTM = fieldSetFlags()[4] ? this.LASTUPDATEDTTM : (java.lang.CharSequence) defaultValue(fields()[4]);
-        record.ISDELETED = fieldSetFlags()[5] ? this.ISDELETED : (java.lang.Integer) defaultValue(fields()[5]);
+        record.PARTITION_Filter = fieldSetFlags()[5] ? this.PARTITION_Filter : (java.lang.CharSequence) defaultValue(fields()[5]);
+        record.ISDELETED = fieldSetFlags()[6] ? this.ISDELETED : (java.lang.Integer) defaultValue(fields()[6]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);
