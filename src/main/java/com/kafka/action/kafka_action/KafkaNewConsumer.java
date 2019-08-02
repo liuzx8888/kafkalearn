@@ -50,9 +50,10 @@ public class KafkaNewConsumer implements Consumer {
 		}
 
 		TIME_OUT = Integer.parseInt(KAFKAPROP.getProperty("time_out"));
-		KAFKAPROP.remove("TIME_OUT");
+		// KAFKAPROP.remove("TIME_OUT");
 		// 2.初始化一个KafkaProducer
-		kafkaConsumerconsumer = new KafkaConsumer<>(KAFKAPROP);
+		kafkaConsumerconsumer = new KafkaConsumer<String, String>(KAFKAPROP);
+
 	}
 
 	/* 订阅主题, 消费消息,自动提交偏移量 */
@@ -121,7 +122,7 @@ public class KafkaNewConsumer implements Consumer {
 					icount++;
 					icount1++;
 				}
-				
+
 				if (icount >= minCommitSize) {
 					consumer.commitAsync(new OffsetCommitCallback() {
 
@@ -225,12 +226,20 @@ public class KafkaNewConsumer implements Consumer {
 	}
 
 	@SuppressWarnings("unused")
-	public String MsgsToHdfs(KafkaConsumer<String, String> consumer, String topic) throws IOException {
+	public String MsgsToHdfs(KafkaConsumer<String, String> consumer, String topic,List<String> partitions) throws IOException {
 		InputStream inputStream = null;
 		String rs = null;
 		if (AUTOCOMMITOFFSET == 0) {
 			List<ConsumerRecord<String, String>> msgs = null;
-			consumer.subscribe(Arrays.asList(topic));
+	        List<TopicPartition> Partitions_ = new LinkedList<TopicPartition>();
+	        
+	        for(String partition : partitions){
+	        	Partitions_.add( new TopicPartition(topic, Integer.parseInt(partition)));
+	        }
+	        System.out.println(Partitions_);
+			consumer.assign( Partitions_);
+			//consumer.subscribe(Arrays.asList(topic));
+			
 			msgs = new LinkedList<ConsumerRecord<String, String>>();
 			ConsumerRecords<String, String> records = consumer.poll(TIME_OUT);
 			try {
@@ -300,14 +309,17 @@ public class KafkaNewConsumer implements Consumer {
 		 * Thread(target).start(); }
 		 */
 
-		List<String> topics = TopicManager.getTopicList("OGG_", "");
-		for (String topic : topics) {
+		List<String> topics = TopicManager.getTopicList("HIS_INIT1", "");
 
+		for (String topic : topics) {
+			System.out.println("topic :" + topic);
 			KafkaNewConsumer target = new KafkaNewConsumer();
+			List<String> partition = TopicManager.getpartition(TopicManager.utils, topic);
+
 			if (AUTOCOMMITOFFSET == 1) {
 				target.subscribeTopicAuto(kafkaConsumerconsumer, topic);
 			} else {
-				String rs = target.MsgsToHdfs(kafkaConsumerconsumer, topic);
+				String rs = target.MsgsToHdfs(kafkaConsumerconsumer, topic, partition);
 				System.out.println(rs);
 			}
 		}

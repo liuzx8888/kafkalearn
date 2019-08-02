@@ -1,6 +1,7 @@
 package com.kafka.action.kafka_action;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.kafka.common.security.JaasUtils;
 
 import com.kafka.action.util.ConfigUtil;
@@ -22,18 +23,42 @@ import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
 public class TopicManager {
-	private static  String ZK_CONNECT ;
-	private static  int SESSION_TIMEOUT ;
-	private static  int CONNECT_TIMEOUT ;
-	private static ZkUtils utils;
-	private static Properties prop =null;
+	public static String ZK_CONNECT;
+	public static int SESSION_TIMEOUT;
+	public static int CONNECT_TIMEOUT;
+	public static ZkUtils utils;
+
+	public static final String ConsumersPath = "/consumers";
+	public static final String BrokerIdsPath = "/brokers/ids";
+	public static final String BrokerTopicsPath = "/brokers/topics";
+	public static final String TopicConfigPath = "/config/topics";
+	public final String TopicConfigChangesPath = "/config/changes";
+	public static final String ControllerPath = "/controller";
+	public static final String ControllerEpochPath = "/controller_epoch";
+	public static final String ReassignPartitionsPath = "/admin/reassign_partitions";
+	public static final String DeleteTopicsPath = "/admin/delete_topics";
+	public static final String PreferredReplicaLeaderElectionPath = "/admin/preferred_replica_election";
+
+	public static String getTopicPath(String topic) {
+		return BrokerTopicsPath + "/" + topic;
+	}
+
+	public static String getTopicPartitionsPath(String topic) {
+		return getTopicPath(topic) + "/partitions";
+	}
+
+	private static Properties prop = null;
 	static {
 		Properties prop = ConfigUtil.getProperties(SystemEnum.ZOOKEEPER);
-		ZK_CONNECT= prop.getProperty("ZK_CONNECT");
-		SESSION_TIMEOUT= Integer.parseInt(prop.getProperty("SESSION_TIMEOUT"));
-		CONNECT_TIMEOUT= Integer.parseInt(prop.getProperty("CONNECT_TIMEOUT"));		
+		ZK_CONNECT = prop.getProperty("ZK_CONNECT");
+		SESSION_TIMEOUT = Integer.parseInt(prop.getProperty("SESSION_TIMEOUT"));
+		CONNECT_TIMEOUT = Integer.parseInt(prop.getProperty("CONNECT_TIMEOUT"));
 		utils = null;
 		utils = ZkUtils.apply(ZK_CONNECT, SESSION_TIMEOUT, CONNECT_TIMEOUT, JaasUtils.isZkSecurityEnabled());
+	}
+
+	public static Seq<String> getChildren(ZkUtils client, String path) {
+		return client.getChildren(path);
 	}
 
 	/*
@@ -48,7 +73,7 @@ public class TopicManager {
 	/*
 	 * 查询主题
 	 */
- 
+
 	public static List<String> getTopicList(String prefix, String postfix) {
 		List<String> allTopicList = JavaConversions.seqAsJavaList(utils.getAllTopics());
 		List<String> topicList = allTopicList.stream()
@@ -97,6 +122,33 @@ public class TopicManager {
 	}
 
 	/*
+	 * 获取分区
+	 */
+
+	public static List<String>   getpartition(ZkUtils utils, String Topic) {
+
+		Seq<String> partitionSeq = getChildren(utils, getTopicPartitionsPath(Topic));
+
+		List<String> partitions = scala.collection.JavaConversions.seqAsJavaList(partitionSeq);
+		Collections.sort(partitions, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				final int p1 = (o1 == null) ? 0 : Integer.parseInt(o1);
+				final int p2 = (o2 == null) ? 0 : Integer.parseInt(o2);
+				return NumberUtils.compare(p1, p2);
+			}
+		});
+        return partitions;
+//		StringBuffer parts = new StringBuffer();
+//		for (String partition : partitions) {
+//			if (parts.length() > 0)
+//				parts.append(",");
+//			parts.append(partition);
+//		}
+//		return parts.toString();
+	}
+
+	/*
 	 * 增加分区
 	 */
 	public static void addpartition(ZkUtils utils, String Topic, int numPartitions) {
@@ -108,6 +160,7 @@ public class TopicManager {
 	 */
 
 	public static void assignreplicas(ZkUtils utils, String Topic, int numPartitions, int replications) {
+
 		/* 获取代理元数据 */
 		Seq<BrokerMetadata> getBrokerMetadatas = AdminUtils.getBrokerMetadatas(utils,
 				AdminUtils.getBrokerMetadatas$default$2(), AdminUtils.getBrokerMetadatas$default$3());
@@ -123,20 +176,22 @@ public class TopicManager {
 
 	}
 
-//	public static void main(String[] args) {
-//		String Topic = "stock-quotation";
-//		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
-//
-//		// TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
-//		// TopicManager.getproperties(utils, Topic);
-//		/* TopicManager.addpartition(utils,Topic, 9); */
-//		/* TopicManager.assignreplicas(utils, Topic, 11, 4); */
-//		List<String> allTopicList = TopicManager.getTopicList("OGG", "");
-//		for (String topic : allTopicList) {
-//			System.out.println(topic);
-//		}
-//
-//		utils.close();
-//
-//	}
+	public static void main(String[] args) {
+		// String Topic = "stock-quotation";
+		/* TopicManager.createtopic(utils, Topic, 4, 2, new Properties()); */
+
+		// TopicManager.alterproperties(utils, Topic, "max.message.bytes", "404800");
+		// TopicManager.getproperties(utils, Topic);
+		/* TopicManager.addpartition(utils,Topic, 9); */
+		/* TopicManager.assignreplicas(utils, Topic, 11, 4); */
+		List<String> allTopicList = TopicManager.getTopicList("HIS_INIT1", "");
+
+		for (String topic : allTopicList) {
+			List<String> partions = TopicManager.getpartition(utils, topic);
+			System.out.println("topic:" + topic + "partions" + partions.get(0));
+		}
+
+		utils.close();
+
+	}
 }
